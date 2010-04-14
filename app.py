@@ -469,7 +469,7 @@ class member_photos_labels(object):
             return json.dumps({"annotation_id": "label-%d" % label.id})
         elif i.action == "delete":
             label = web.ctx.orm.query(orm.PhotoLabel).filter_by(id=int(i.id.split("-")[1])).filter_by(photo=photo).one()
-            web.ctx.orm.remove(label)
+            web.ctx.orm.delete(label)
             web.header("Content-Type", "text/json")
             return json.dumps({})
         else:
