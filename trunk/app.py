@@ -429,7 +429,7 @@ class member_photos(object):
         tags = web.ctx.orm.query(orm.Tag, count.c.count, labeled.c.count, labeled.c.names)\
                           .join((count, orm.Tag.id == count.c.tag_id))\
                           .outerjoin((labeled, orm.Tag.id == labeled.c.tag_id))\
-                          .order_by(orm.Tag.instance_order).all()
+                          .order_by([desc(orm.Tag.instance_order)]).all()
         return render.page("/member/photos.html", render.member.photos(tags), self.member)
 
 
