@@ -1,0 +1,35 @@
+$def with (changes, member)
+$ rootpath = "../../../.." if member else "../../.."
+$var script:
+     <script src="$rootpath/static/jquery.min.js" type="text/javascript"></script>
+     <script type="text/javascript">
+       $$(function() {
+         $$("form").submit(function() {
+           return confirm("Diesen Änderungseintrag wirklich löschen (normalerweise sollte man sowas nicht tun)?");
+         });
+         $$("dt").append(' <a href="#" class="more">mehr…</a>');
+         $$("dd").css("display", "none");
+         $$("a.more").live("click", function() {
+           $$(this).text($$(this).parent().next().is(":hidden") ? "weniger…" : "mehr…");
+           $$(this).parent().next().toggle();
+           return false;
+         });
+       });
+     </script>
+$if member:
+    <h1><a href="../../members.html">Mitgliederverwaltung</a>: Änderungen von $member.firstname $member.lastname zurückverfolgen</h1>
+$else:
+    <h1><a href="../members.html">Mitgliederverwaltung</a>: Änderungen zurückverfolgen</h1>
+$for change in changes:
+    <dl>
+    <dt>$change.timestamp.strftime("%d.%m.%Y, %H:%M:%S"): $change.note
+    $if not member:
+        (<a href="$change.member.id/changes.html">$change.member.firstname $change.member.lastname</a>)
+    durch $change.editor.firstname $change.editor.lastname</dt>
+    <dd>
+      <form action="changes.html" method="POST">
+      <p style="float:right;"><input type="hidden" name="id" value="$change.id"><input type="submit" name="delete" value="diese Änderungsinformation löschen"></p>
+      </form>
+      <pre>$change.text</pre>
+      </dd>
+    </dl>

@@ -1,0 +1,20 @@
+$def with (form, instance)
+$code:
+    options = "".join("<option>member/message/%s/show.html</option>" % circular.name for circular in instance.circulars)
+$var script:
+    <script src="../../../../static/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $$(function () {
+        $$("input[id=url]").after(' z.B. <select id="suggestion"><option>(Vorschläge zur Auswahl; nach Selektion editierbar)</option>$:options<option>member/wiki/…</option><option>member/photos/…</option><option>member/verein/…</option><option>member/index.html</option><option>presse/…</option></select>');
+        $$("select[id=suggestion]").change(function() {
+          if ($$("select[id=suggestion]").val()[0] != "(")
+          {
+            $$("input[id=url]").val($$("select[id=suggestion]").val());
+          }
+        });
+      });
+    </script>
+<h1><a href="../members.html">Mitgliederverwaltung</a>: Link neu anlegen</h1>
+<form action="new.html" method="POST">
+  $:form.render()
+</form>

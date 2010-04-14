@@ -1,0 +1,40 @@
+$def with (entrances, members)
+<div style="float:right;"><a href="link/new.html">Neuen Link anlegen</a></div>
+<h1><a href="members.html">Mitgliederverwaltung</a>: Links</h1>
+$if members:
+    <form action="links.html" method="POST">
+    <p style="font-style:italic;">
+      $len(members) Mitglieder ausgewählt ($"; ".join("%s, %s" % (member.lastname, member.firstname) for member in members)).
+      <input type="hidden" name="selection" value="$(",".join(str(member.id) for member in members))">
+    </p>
+<table id="list" cellspacing="0" cellpadding="0" border="0" style="clear:right;">
+  <tr><th>URL</th><th>gültig bis</th><th>Mitglieder</th>
+    $if members:
+        <th>Aktion für Link<br>(alle Mitglieder mit Link)</th><th>Aktion für ausgewählte Mitglieder</th>
+    $else:
+        <th>Aktion</th>
+  </tr>
+  $for entrance, all_count, all_ids, selected_count, selected_ids in entrances:
+      <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+        <td><a href="../../$entrance.url">$:entrance.url.replace("/", "/&#8203;")</a></td>
+        <td nowrap>$entrance.expire.strftime("%d.%m.%Y")</td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$selected_ids">$(selected_count or 0)</a> von
+          <a href="members.html?selection=$all_ids">$(all_count or 0)</a>
+        </td>
+        <td nowrap>
+          <a href="link/$entrance.id/edit.html">bearbeiten</a>,
+          <a href="link/$entrance.id/delete.html">löschen</a>,
+          <a href="link/$entrance.id/email.html">Rundmail</a>
+        </td>
+        $if members:
+            <td nowrap>
+              <input type="submit" name="add_$entrance.id" value="hinzufügen"$(selected_count and " disabled" or "")>
+              <input type="submit" name="remove_$entrance.id" value="entfernen"$(selected_count != len(members) and " disabled" or "")>
+              <input type="submit" name="email_$entrance.id" value="Rundmail"$(selected_count != len(members) and " disabled" or "")>
+            </td>
+      </tr>
+</table>
+$if members:
+    </form>

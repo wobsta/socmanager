@@ -1,0 +1,8 @@
+$def with (form, failed=False)
+<h1>Zugang für Chormitglieder</h1>
+$if failed:
+    <p>Das Einloggen war nicht erfolgreich. Fragen und Hilfe zum Login unter <img src="static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;">.</p>
+<form action="login.html" method="POST">
+$:form.render()
+</form>
+<p>Zugang erfordert das Zulassen eines Cookies &mdash; siehe <a href="privacy.html">Hinweise zum Datenschutz</a> für Details</p>

@@ -1,0 +1,60 @@
+$def with (tag, page)
+<h1><a href="../../photos.html">Fotoalben</a></h1>
+<h2>$tag.description</h2>
+<p>Fotos von $tag.photographer</p>
+$def paginator():
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0px">
+      <tr>
+        <td align="left">
+          $if len(tag.photos) > 20 and page != 1:
+              $if page == 2:
+                  <a href="index.html">vorherige Seite</a>
+              $else:
+                  <a href="index.html?page=$(page-1)">vorherige Seite</a>
+          $else:
+              <span style="color:white;">vorherige Seite</span>
+        </td>
+        <td align="center">
+          $len(tag.photos) Fotos auf
+          $((len(tag.photos)+19)/20)
+          $if len(tag.photos) <= 20:
+              Seite
+          $else:
+              Seiten:
+              $for p in range(1, (len(tag.photos)+39)/20):
+                  $if p != page:
+                      $if p != 1:
+                          <a href="index.html?page=$p">$p</a>
+                      $else:
+                          <a href="index.html">$p</a>
+                  $else:
+                      $p
+        </td>
+        <td align="right">
+          $if len(tag.photos) > 20 and page != (len(tag.photos)+19)/20:
+              <a href="index.html?page=$(page+1)">nächste Seite</a>
+          $else:
+              <span style="color:white;">nächste Seite</span>
+        </td>
+      </tr>
+    </table>
+$:paginator()
+<table cellpadding="0" cellspacing="0" border="0">
+$ has_slash_tr = True
+$for photo in tag.photos:
+    $if (loop.index0+20)/20 == page:
+        $ has_slash_tr = False
+        $if not (loop.index0 % 4):
+            <tr>
+            <td style="padding:20px 0px;" align="center" width="150">
+        $else:
+            <td style="padding:20px 0px 20px 50px;" align="center" width="150">
+        <a href="index.html?photo=$photo.name"><img alt="$photo.name" src="$photo.name?type=thumb" width="$photo.thumbwidth" height="$photo.thumbheight" border="0"></a><br><a href="index.html?photo=$photo.name">$photo.name</a></td>
+        $if loop.index0 % 4 == 3:
+            </tr>
+            $ has_slash_tr = True
+$if not has_slash_tr:
+    </tr>
+</table>
+$:paginator()
+<p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>

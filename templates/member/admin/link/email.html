@@ -1,0 +1,39 @@
+$def with (form, entrance, members, missing)
+$var script:
+    <script src="../../../../static/jquery.min.js" type="text/javascript"></script>
+    <script src="../../../../static/jquery.timer.js" type="text/javascript"></script>
+    <script src="../../../../static/jquery.scrollTo-min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $$(function () {
+        $$("form").submit(function() {
+          $$("#progress_hide").hide();
+          $$("#progress_show").show();
+          $$.timer(100, function (timer) {
+            $$("#progress_frame").scrollTo("100%", 0, {duration:0});
+          });
+          $$("#progress_frame").load(function() {
+            window.location = "../../links.html"
+          });
+          return true;
+        });
+        $$("#progress_show").hide();
+      });
+    </script>
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: <a href="../../links.html">Links</a>: Rundmail</h1>
+<p style="font-style:italic;">$len(members) Mitglieder ausgewählt ($"; ".join("%s, %s" % (member.lastname, member.firstname) for member in members)).</p>
+$if missing:
+    <p style="font-style:italic;">
+      Für <a href="members.html?selection=$(",".join("%s" % member.id for member in missing))">$len(missing)</a> Personen ist keine E-Mail-Adresse hinterlegt.
+      Diese Personen werden hier deshalb <b>nicht</b> berücksichtigt
+      ($("; ".join("%s, %s" % (member.lastname, member.firstname) for member in missing))).
+    </p>
+<div id="progress_hide">
+  <p><b>Ausgewählter Link</b>: <a href="../../../../$entrance.url">$entrance.url</a> gültig bis $entrance.expire.strftime("%d.%m.%Y")</p>
+  <form action="email.html" method="POST" target="progress_frame">
+  $:form.render()
+  </form>
+</div>
+<div id="progress_show">
+  <p><b>E-Mail-Versand läuft &mdash; Statusmeldungen:</b></p>
+  <p><iframe id="progress_frame" name="progress_frame" src="../../nostatus.html" width="500" height="100"></iframe></p>
+</div>

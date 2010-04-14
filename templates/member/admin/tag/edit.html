@@ -1,0 +1,40 @@
+$def with (form, photopaths)
+$code:
+    options = "".join("<option>%s</option>" % photopath for photopath in photopaths)
+$var script:
+    <script src="../../../../static/jquery.min.js" type="text/javascript"></script>
+    <script src="../../../../static/jquery.timer.js" type="text/javascript"></script>
+    <script src="../../../../static/jquery.scrollTo-min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $$(function () {
+        $$("input[id=photopath]").after(' z.B. <select id="suggestion"><option>(Vorschläge zur Auswahl; nach Selektion editierbar)</option>$:options</select>');
+        $$("select[id=suggestion]").change(function() {
+          if ($$("select[id=suggestion]").val()[0] != "(")
+          {
+            $$("input[id=photopath]").val($$("select[id=suggestion]").val());
+          }
+        });
+        $$("form").submit(function() {
+          $$("#progress_hide").hide();
+          $$("#progress_show").show();
+          $$.timer(100, function (timer) {
+            $$("#progress_frame").scrollTo("100%", 0, {duration:0});
+          });
+          $$("#progress_frame").load(function() {
+            window.location = "../../tags.html"
+          });
+          return true;
+        });
+        $$("#progress_show").hide();
+      });
+    </script>
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: Tag editieren</h1>
+<div id="progress_hide">
+  <form action="edit.html" method="POST" target="progress_frame">
+  $:form.render()
+  </form>
+</div>
+<div id="progress_show">
+  <p><b>Scannen des Fotoalbums läuft &mdash; Statusmeldungen:</b></p>
+  <p><iframe id="progress_frame" name="progress_frame" src="../../nostatus.html" width="800" height="100"></iframe></p>
+</div>

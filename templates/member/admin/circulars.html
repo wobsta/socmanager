@@ -1,0 +1,46 @@
+$def with (form, circulars, members)
+$if members:
+    <h1><a href="members.html">Mitgliederverwaltung</a>: Chorbriefe</h1>
+    <h2>Nachricht für ausgewählte Mitglieder</h2>
+    <p style="font-style:italic">$len(members) Mitglieder ausgewählt ($"; ".join("%s, %s" % (member.lastname, member.firstname) for member in members)).</p>
+    <form action="circulars.html" method="POST">
+    $:form.render()
+    </form>
+    <hr>
+    <div style="float:right;"><a href="circular/copy.html">Neuen Chorbrief anlegen</a></div>
+    <h2>Liste der Chorbriefe</h2>
+$else:
+    <div style="float:right;"><a href="circular/copy.html">Neuen Chorbrief anlegen</a></div>
+    <h1><a href="members.html">Mitgliederverwaltung</a>: Chorbriefe</h1>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Name</th><th>Mitglieder</th><th>davon ungelesen</th><th>online gelesen</th><th>als Brief gelesen</th><th>Aktion</th></tr>
+  $for circular, total, total_ids, total_selected, total_selected_ids, unread, unread_ids, unread_selected, unread_selected_ids, online, online_ids, online_selected, online_selected_ids, snailmail, snailmail_ids, snailmail_selected, snailmail_selected_ids in circulars:
+      <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+        <td>$circular.title</td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$total_selected_ids">$(total_selected or 0)</a> von
+          <a href="members.html?selection=$total_ids">$(total or 0)</a>
+        </td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$unread_selected_ids">$(unread_selected or 0)</a> von
+          <a href="members.html?selection=$unread_ids">$(unread or 0)</a>
+        </td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$online_selected_ids">$(online_selected or 0)</a> von
+          <a href="members.html?selection=$online_ids">$(online or 0)</a>
+        </td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$snailmail_selected_ids">$(snailmail_selected or 0)</a> von
+          <a href="members.html?selection=$snailmail_ids">$(snailmail or 0)</a>
+        </td>
+        <td nowrap>
+          <a href="circular/$circular.id/edit.html">bearbeiten</a>,
+          <a href="circular/$circular.id/delete.html">löschen</a>,
+          <a href="circular/$circular.id/attachments.html">$len(circular.attachments) Anhänge</a>
+        </td>
+      </tr>
+</table>

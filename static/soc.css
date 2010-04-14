@@ -1,0 +1,163 @@
+body
+{
+  background-image:url(bg.gif);
+  background-position:left;
+  background-repeat:repeat-y;
+  background-color:#fff;
+  margin:0px;
+  padding:0px;
+  font-size:0.9em;
+  font-family:Verdana,Sans-Serif;
+  color:#333;
+}
+#soc
+{
+  float:left;
+  padding:80px 20px 80px 40px;
+}
+#menu
+{
+  float:left;
+  padding-top:80px;
+}
+#menu ul
+{
+  list-style:none;
+  padding:0pt;
+}
+#menu li
+{
+  padding:0.2em 0pt;
+  font-style:italic;
+  font-weight:bold;
+  color:#fd0;
+}
+#menu .member
+{
+  padding-top:2em;
+}
+#menu a
+{
+  text-decoration:none;
+  color:#00d;
+}
+#menu a:hover
+{
+  text-decoration:underline;
+  color:#fd0;
+}
+#tr
+{
+  float:right;
+  background-image:url(tr.gif);
+  background-position:top right;
+  background-repeat:no-repeat;
+  width:500px;
+  height:100px;
+  padding:5px;
+  text-align:right;
+  font-style:italic;
+  font-weight:bold;
+  color:#fd0;
+}
+#content
+{
+  clear:right;
+  padding:0px 100px 20px 300px;
+}
+#content a
+{
+  color:#00d;
+}
+#content a:visited
+{
+  color:#60d;
+}
+#content h1
+{
+  margin:0.5em 0em;
+  font-size:1.4em;
+  font-weight:bold;
+}
+#content h2
+{
+  margin:0.4em 0em;
+  font-size:1.2em;
+  font-weight:bold;
+}
+#content h3
+{
+  margin:0.4em 0em;
+  font-size:1em;
+  font-weight:bold;
+}
+#content h4
+{
+  font-size:1em;
+  font-weight:normal;
+  font-style:italic;
+}
+#content p
+{
+  margin:0.6em 0em;
+}
+dt
+{
+  margin:0.6em 0em;
+  font-weight: bold;
+}
+li
+{
+  margin:0.6em 0em;
+}
+#content hr.major
+{
+  clear:right;
+  margin:30px 0px;
+  border-top:1px solid #00d;
+  border-bottom:1px solid #fd0;
+  border-left:0px solid #fff;
+  border-right:0px solid #fff;
+  padding:1px;
+}
+#content hr.minor
+{
+  clear:right;
+  margin:30px 30%;
+  border-top:1px solid #00d;
+  border-bottom:0px solid #fff;
+  border-left:0px solid #fff;
+  border-right:0px solid #fff;
+}
+#content p.pressauthor
+{
+  font-style:italic;
+  text-align:right;
+}
+#content p.pressintro
+{
+  font-style:italic;
+}
+#content p.footline
+{
+  clear:right;
+  margin-top:30px;
+  border-top:1px solid #00d;
+  font-size:0.7em;
+  font-style:italic;
+}
+#content form table tr th
+{
+  text-align:right;
+}
+#content table#list tr td
+{
+  padding-left:0.5em;
+  padding-right:0.5em;
+}
+#content table#list tr th
+{
+  text-align:center!important;
+  padding-left:0.5em;
+  padding-right:0.5em;
+}

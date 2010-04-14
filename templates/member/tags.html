@@ -1,0 +1,11 @@
+$def with (member)
+<h1>Tags von $member.firstname $member.lastname</h1>
+<p>Tags sind Eigenschaften, die Deiner Person zugeordnet sind. Du kannst diese nicht selbst editieren. Sollten Fehler enthalten sein, melde diese unter <img src="/static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;" alt="email">.</p>
+<ul>
+  $for tag in member.tags:
+      $if tag.visible:
+          <li>
+            $tag.description
+          </li>
+</ul>
+<p>zurück zu <a href="index.html">Deiner SOC Mitgliederseite</a></p>

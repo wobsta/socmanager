@@ -1,0 +1,55 @@
+$def with (url, content, member, printview=False)
+$code:
+    menu = ("/index.html", "Startseite",
+            "/project.html", "Projekte",
+            "/choir.html", "Chor",
+            "/head.html", "Leitung",
+            "/press.html", "Presse",
+            "/contact.html", "Impressum",
+            "/member/index.html", "Mitglieder"
+            )
+    def pairwise(l):
+        i = 0
+        while i < len(l):
+            yield l[i], l[i+1]
+            i += 2
+    homepath = "../"*url[1:].count("/")
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <title>Schwäbischer Oratorienchor</title>
+$if not printview:
+    <link rel="stylesheet" type="text/css" href="${homepath}static/soc.css">
+    $:content.get("script", "")
+  </head>
+  <body$:content.get("body_attrs", "")>
+$if not printview:
+    <div id="soc">
+      <img width="31" height="536" alt="SOC Logo" src="${homepath}static/soc.gif">
+    </div>
+    <div id="menu">
+      <ul>
+        $for menu_url, name in pairwise(menu):
+            $if name == "Mitglieder":
+                <li class="member">
+            $else:
+                <li>
+              $if url == menu_url:
+                  $name
+              $else:
+                  <a href="$homepath$menu_url[1:]">$name</a>
+            </li>
+      </ul>
+    </div>
+    <div id="tr">
+      $if member:
+          $member.firstname&nbsp;$member.lastname&nbsp;&nbsp;&nbsp;<form action="${homepath}logout.html" method="POST" style="display:inline;"><input type="submit" name="logout" value="Ausloggen"></form>
+    </div>
+    <div id="content">
+      $:content
+      <p class="footline">© 2001 - 2010, Schwäbischer Oratorienchor e.V., powered by <a href="http://code.google.com/p/socmanager/">socmanager</a></p>
+    </div>
+$else:
+    $:content
+  </body>
+</html>
