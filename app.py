@@ -316,8 +316,8 @@ class member_data(object):
             self.member.street = form.d.street
             self.member.zip = form.d.zip
             self.member.city = form.d.city
-            self.member.lateral = form.d.lateral
-            self.member.longitudinal = form.d.longitudinal
+            self.member.lateral = form.d.lateral or None
+            self.member.longitudinal = form.d.longitudinal or None
             self.member.phone = form.d.phone
             self.member.email = form.d.email
             birthday = get_birthday(form.d)
