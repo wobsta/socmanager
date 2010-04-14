@@ -1,0 +1,39 @@
+\nonstopmode
+\LoadClass[DINmtext,pagenumber=off,foldmarks]{scrlttr2}
+\setkomavar{backaddress}{Andr\'e Wobst, Amselweg 22, 85716 Unterschlei\ss heim}
+\setkomavar{date}{}
+\RequirePackage{helvet,ifthen}
+\renewcommand{\familydefault}{\sfdefault}
+\newbox\memberBox
+\newenvironment{members}{}{}
+\newenvironment{memberGroup}{%
+\setbox\memberBox\vtop\bgroup\hsize60mm\noindent
+}{%
+\ifthenelse{\equal{\member@Co}{}}{}{\member@Co\\}
+\member@Street\\
+\member@Zip{} \member@City
+\egroup
+\begin{letter}{\box\memberBox}
+\opening{}
+\end{letter}
+}
+\newenvironment{member}{}{}
+\newcommand\datetime[1]{}
+\newcommand\info[1]{}
+\newcommand\memberId[1]{}
+\newcommand\memberLogin[1]{}
+\newcommand\memberGender[1]{}
+\newcommand\memberTitle[1]{}
+\newcommand\memberFirstname[1]{\gdef\member@Firstname{#1}}
+\newcommand\memberLastname[1]{\member@Firstname{} #1\\}
+\newcommand\memberCo[1]{\gdef\member@Co{#1}}
+\newcommand\memberStreet[1]{\gdef\member@Street{#1}}
+\newcommand\memberZip[1]{\gdef\member@Zip{#1}}
+\newcommand\memberCity[1]{\gdef\member@City{#1}}
+\newcommand\memberLateral[1]{}
+\newcommand\memberLongitudinal[1]{}
+\newcommand\memberEmail[1]{}
+\newcommand\memberPhone[1]{}
+\newcommand\memberBirthday[1]{}
+\newcommand\memberNote[1]{}
+\newcommand\memberTags[1]{}

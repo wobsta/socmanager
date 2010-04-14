@@ -1,0 +1,50 @@
+$def with (photo)
+$if photo.allow_labels:
+    $var script:
+        <link rel="stylesheet" type="text/css" href="../../../static/annotation.css">
+        <script src="../../../static/jquery.min.js" type="text/javascript"></script>
+        <script src="../../../static/jquery-ui-1.7.1.js" type="text/javascript"></script>
+        <script src="../../../static/jquery.annotate.js" type="text/javascript"></script>
+        <script language="javascript">
+          $$(window).load(function() {
+            $$("#photo").annotateImage({
+              getUrl: "labels.html?photo=$photo.name&action=get",
+              saveUrl: "labels.html?photo=$photo.name&action=save",
+              deleteUrl: "labels.html?photo=$photo.name&action=delete",
+              editable: true
+            });
+          });
+        </script>
+<h1><a href="../../photos.html">Fotoalben</a></h1>
+<h2>$photo.tag.description</h2>
+<p>Fotos von $photo.tag.photographer</p>
+$def paginator():
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0px">
+      <tr>
+        <td align="left">
+          $ i = photo.tag.photos.index(photo)
+          $if i:
+              <a href="index.html?photo=$photo.tag.photos[i-1].name">vorheriges Photo</a>
+          $else:
+              <span style="color:white;">vorheriges Photo</span>
+        </td>
+        <td align="center">
+          $if i/20:
+              <a href="index.html?page=$(i/20+1)">Übersicht</a>
+          $else:
+              <a href="index.html">Übersicht</a>
+        </td>
+        <td align="right">
+          $if i < len(photo.tag.photos)-1:
+              <a href="index.html?photo=$photo.tag.photos[i+1].name">nächstes Photo</a>
+          $else:
+              <span style="color:white;">nächstes Photo</span>
+        </td>
+      </tr>
+    </table>
+$:paginator()
+$ has_slash_tr = True
+<p style="text-align:center;"><img id="photo" alt="$photo.name" src="$photo.name?type=mid" width="$photo.midwidth" height="$photo.midheight" border="0"></p>
+<p style="text-align:center;"><a href="$photo.name">$photo.name</a> ($("%.1f" % (photo.size/1024.0/1024)) MB)</p>
+$:paginator()
+<p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>

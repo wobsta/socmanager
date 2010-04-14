@@ -1,0 +1,5 @@
+$def with (form, attachment)
+<h1><a href="../../../../members.html">Mitgliederverwaltung</a>: <a href="../../../../circulars.html">Chorbriefe</a>: <a href="../../attachments.html">Anhänge zu $attachment.circular.title</a>: Anhang editieren</h1>
+<form action="edit.html" enctype="multipart/form-data" method="POST">
+$:form.render()
+</form>

@@ -1,0 +1,66 @@
+$def with (instance, form)
+$code:
+    count = 0
+    for key, value in form.d.items():
+        if key.startswith("member_") and value:
+          count += 1
+$var script:
+    <script src="../../static/jquery.min.js" type="text/javascript"></script>
+    <script src="../../static/jquery.quicksearch.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $$(function () {
+        $$('table#list').before('<form action="#"><p><label for="search">Namensfilter:</label> <input type="text" name="search" value="" id="search" /></p></form>');
+        $$('input#search').quicksearch('table#list td.search', {'show': function () {$$(this).parent().show();},
+                                                                'hide': function () {$$(this).parent().hide();}});
+        $$("#selection").after('<p style="font-style:italic"><span id="count">$count</span> Mitglieder ausgewählt.</p>');
+        $$("input[type=checkbox]").change(function() {
+          $$("#count").text($$("input[type=checkbox]:checked").size());
+          return true;
+        });
+      });
+    </script>
+<h1>Mitgliederverwaltung</h1>
+<form action="members.html" method="POST">
+<p>
+  <input type="submit" name="print" value="Drucken">
+  <input type="submit" name="tags" value="Tags">
+  <input type="submit" name="circulars" value="Chorbriefe">
+  <input type="submit" name="links" value="Links">
+</p>
+<hr>
+<h2 id="selection">Auswahl</h2>
+<p id="selection">
+  $:form.withorwithout.render() tag $:form.tag.render():
+  <input type="submit" name="add" value="zur Auswahl hinzufügen">
+  <input type="submit" name="remove" value="von Auswahl entfernen">
+</p>
+<p>
+  <input type="submit" name="none" value="nichts auswählen">
+  <input type="submit" name="all" value="alles auswählen">
+  <input type="submit" name="invert" value="Auswahl umkehren">
+</p>
+<hr>
+<div style="float:right;"><a href="member/new.html">Neues Mitglied anlegen</a>, <a href="member/changes.html">Änderungen anzeigen</a></div>
+<h2>Mitgliederliste</h2>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th></th><th>Name</th><th>Aktion</th></tr>
+  $for member in instance.members:
+      <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+        <td>
+          $:form['member_%i' % member.id].render()
+        </td>
+        <td class="search">
+          <label for="$form['member_%i' % member.id].id">
+            $if [tag for tag in member.tags if tag.name == "inaktiv"]:
+                $member.lastname, $member.firstname
+            $else:
+                <b>$member.lastname, $member.firstname</b>
+          </label>
+        </td>
+        <td>
+          <a href="member/$member.id/edit.html">bearbeiten</a>,
+          <a href="member/$member.id/delete.html">löschen</a>
+        </td>
+      </tr>
+</table>
+</form>

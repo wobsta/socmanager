@@ -1,0 +1,17 @@
+$def with (message, member, icons, printview)
+$if printview:
+    <form action="show.html" method="GET"><div style="float:right;"><input type="submit" name="submit" value="zur Normalansicht"></div></form>
+$else:
+    <form action="show.html" method="POST"><div style="float:right;"><input type="submit" name="submit" value="zur Druckansicht"></div></form>
+$:(message.circular.html % {"firstname": member.firstname, "lastname": member.lastname})
+$if message.circular.attachments:
+    <table cellpadding="10" border="0">
+      <tr>
+        $for attachment in message.circular.attachments:
+            <td align="center">
+              <a href="$attachment.name"><img alt="$attachment.mimetype" src="../../../static/$icons[attachment.mimetype]" width="40" height="50" border="0"></a><br>
+              <a href="$attachment.name">$attachment.name</a></td>
+      </tr>
+    </table>
+$if not printview:
+    <p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>

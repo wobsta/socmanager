@@ -1,0 +1,44 @@
+$def with (tags, members)
+<div style="float:right;"><a href="tag/new.html">Neuen Tag anlegen</a></div>
+<h1><a href="members.html">Mitgliederverwaltung</a>: Tags</h1>
+$if members:
+    <form action="tags.html" method="POST">
+    <p style="font-style:italic;">
+      $len(members) Mitglieder ausgewählt ($"; ".join("%s, %s" % (member.lastname, member.firstname) for member in members)).
+      <input type="hidden" name="selection" value="$(",".join(str(member.id) for member in members))">
+    </p>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Name</th><th>Mitglieder</th><th>sichtbar</th><th>Fotoalbum</th>
+    $if members:
+        <th>Aktion für Tag</th><th>Aktion für ausgewählte Mitglieder</th>
+    $else:
+        <th>Aktion</th>
+  </tr>
+  $for tag, all_count, all_ids, select_count, selected_ids, photos in tags:
+      <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+        <td>$tag.name</td>
+        <td style="text-align:center;" nowrap>
+          $if members:
+              <a href="members.html?selection=$selected_ids">$(select_count or 0)</a> von
+          <a href="members.html?selection=$all_ids">$(all_count or 0)</a>
+        </td>
+        <td style="text-align:center;">$("ja" if tag.visible else "nein")</td>
+        <td style="text-align:center;">
+          $if tag.photopath:
+               <a href="../photos/$tag.name/index.html">$(photos or 0) Fotos</a>
+          $else:
+               nein
+        </td>
+        <td>
+          <a href="tag/$tag.id/edit.html">bearbeiten</a>,
+          <a href="tag/$tag.id/delete.html">löschen</a>
+        </td>
+        $if members:
+            <td>
+              <input type="submit" name="add_$tag.id" value="Auswahl hinzufügen"$(select_count and " disabled" or "")>
+              <input type="submit" name="remove_$tag.id" value="Auswahl entfernen"$(select_count != len(members) and " disabled" or "")>
+            </td>
+      </tr>
+</table>
+$if members:
+    </form>

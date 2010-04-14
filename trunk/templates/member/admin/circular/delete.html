@@ -1,0 +1,6 @@
+$def with (circular)
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: Chorbrief "$circular.title" löschen</h1>
+<p>Achtung: Der Chorbrief wird auch von $len(circular.messages) Mitgliedern entfernt.</p>
+<form action="delete.html" method="POST">
+<p><input type="submit" name="delete" value="vollständig löschen"></p>
+</form>

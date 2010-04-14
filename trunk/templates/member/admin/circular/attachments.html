@@ -1,0 +1,19 @@
+$def with (circular)
+<div style="float:right;"><a href="attachment/new.html">Neuen Anhang hinzufügen</a></div>
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: <a href="../../circulars.html">Chorbriefe</a>: Anhänge zu $circular.title</h1>
+$if circular.attachments:
+    <table id="list" cellspacing="0" cellpadding="0" border="0">
+      <tr><th>Dateiname</th><th>Größe</th><th>Typ</th><th>Aktion</th></tr>
+      $for attachment in circular.attachments:
+          <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+            <td nowrap><a href="attachment/$attachment.id/show.html">$attachment.name</a></td>
+            <td nowrap>$attachment.mimetype</td>
+            <td nowrap>$("%.1f" % (len(attachment.data)/1024)) kB</td>
+            <td nowrap>
+              <a href="attachment/$attachment.id/edit.html">bearbeiten</a>,
+              <a href="attachment/$attachment.id/delete.html">löschen</a>
+            </td>
+          </tr>
+    </table>
+$else:
+    <p>Bisher sind keine Anhänge vorhanden.</p>

@@ -1,0 +1,9 @@
+$def with (form, members)
+<h1><a href="members.html">Mitgliederverwaltung</a>: Drucken</h1>
+$if not members:
+    <p>Leere Auswahl &mdash; Drucken nicht möglich!</p>
+$else:
+    <p style="font-style:italic">$len(members) Mitglieder ausgewählt ($"; ".join("%s, %s" % (member.lastname, member.firstname) for member in members)).</p>
+    <form action="print.html" method="POST">
+    $:form.render()
+    </form>

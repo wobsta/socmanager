@@ -1,0 +1,52 @@
+$def with (form, maps_key)
+$var script:
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=$maps_key" type="text/javascript"></script>
+    <script type="text/javascript">
+    var map = null;
+    var marker = null;
+    var geocoder = null;
+    function initialize() {
+      if (GBrowserIsCompatible()) {
+        map = new GMap2(document.getElementById("map_canvas"));
+        var point = new GLatLng(parseFloat(document.getElementById("lateral").value),
+                                 parseFloat(document.getElementById("longitudinal").value));
+        map.setCenter(point, 16);
+        map.setUIToDefault();
+        marker = new GMarker(point, {draggable: true});
+        geocoder = new GClientGeocoder();
+        GEvent.addListener(marker, "dragend", function() {
+          document.getElementById("lateral").value = marker.getLatLng().lat().toFixed(6);
+          document.getElementById("longitudinal").value = marker.getLatLng().lng().toFixed(6);
+        });
+        map.addOverlay(marker);
+      }
+    }
+    function showAddress() {
+      if (geocoder) {
+        var address = document.getElementById("street").value + ", " + document.getElementById("zip").value + " " + document.getElementById("city").value;
+        geocoder.getLatLng(
+          address,
+          function(point) {
+            if (!point) {
+              alert(address + " wurde nicht gefunden, bitte manuell auf der Karte einstellen.");
+            } else {
+              marker.setPoint(point);
+              map.setCenter(point, 16);
+              document.getElementById("lateral").value = point.lat().toFixed(6);
+              document.getElementById("longitudinal").value = point.lng().toFixed(6);
+            }
+          }
+        );
+      }
+    }
+    </script>
+$var body_attrs = ' onload="initialize()" onunload="GUnload()"'
+<div style="float:right;"><a href="changes.html">Änderungen anzeigen</a></div>
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: Mitgliederdaten editieren</h1>
+<form action="edit.html" method="POST">
+$:form.render()
+</form>
+<form action="#" onsubmit="showAddress(); return false;">
+<p><input type="submit" name="geocode" value="Adresse neu suchen"></p>
+</form>
+<p id="map_canvas" style="width: 700px; height: 500px"></p>
