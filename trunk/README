@@ -50,11 +50,12 @@ the following aggregate function:
 Deployment (for dev mode on http://localhost:8080)
 --------------------------------------------------
 
-> virtualenv socmanager
+> virtualenv --no-site-packages socmanager
 > cd socmanager
 > . bin/activate
 > easy_install web.py
 > easy_install SQLAlchemy
+> easy_install psycopg2
 > easy_install pil
 > svn checkout http://socmanager.googlecode.com/svn/trunk/ dev
 > cd dev
