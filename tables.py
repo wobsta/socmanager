@@ -1,7 +1,12 @@
 import datetime
 
+from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy import MetaData, Table, Column, ForeignKey, UniqueConstraint, CheckConstraint
-from sqlalchemy import Integer, Unicode, String, Boolean, Date, DateTime, Numeric, Binary
+from sqlalchemy import Integer, Unicode, String, Boolean, Date, DateTime, Numeric
+if sqlalchemy_version.startswith("0.5"):
+    from sqlalchemy import Binary as LargeBinary
+else:
+    from sqlalchemy import LargeBinary
 
 metadata = MetaData()
 
@@ -95,7 +100,7 @@ attachment_table = Table("attachment", metadata,
                          Column("id", Integer, primary_key=True),
                          Column("name", Unicode, nullable=False),
                          Column("mimetype", Unicode, nullable=False),
-                         Column("data", Binary, nullable=False),
+                         Column("data", LargeBinary, nullable=False),
                          Column("circular_order", String, nullable=False),
                          Column("circular_id", Integer, ForeignKey("circular.id"), nullable=False),
                          UniqueConstraint("name", "circular_id"),

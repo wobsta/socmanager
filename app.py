@@ -836,6 +836,10 @@ class member_admin_print(member_admin_work_on_selection):
                     members_groups.append(merged_members)
             for merged_members in members_groups:
                 merged_members.sort(key=lambda member: member.gender)
+            try:
+                os.makedirs(cfg.tmpdir)
+            except OSError:
+                pass
             if format.type == "xml":
                 filename = os.path.join(cfg.tmpdir, "%s.xml" % cfg.instance)
                 f = open(filename, "w")
@@ -907,7 +911,7 @@ class member_admin_print(member_admin_work_on_selection):
                     os.unlink(os.path.join(cfg.tmpdir, "%s.pdf" % cfg.instance))
                 except OSError:
                     pass
-                os.system("%s %s > %s.out 2>&1" % (cfg.pdflatex, filename, filename[:-4]))
+                os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmpdir, cfg.pdflatex, filename, filename[:-4]))
                 f = open(os.path.join(cfg.tmpdir, "%s.pdf" % cfg.instance), "rb")
                 pdf = f.read()
                 f.close()

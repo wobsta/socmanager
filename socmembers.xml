@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <soc>
 <tag visible="False" name="admin" description="Administrator"></tag>
-<member firstname="X" lastname="Y" gender="male" tags="admin" login="spam" passwd="eggs"></member>
+<member firstname="John" lastname="Doe" gender="male" tags="admin" login="spam" passwd="eggs"></member>
 </soc>
