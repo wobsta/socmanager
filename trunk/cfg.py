@@ -1,17 +1,20 @@
 # -*- encoding: utf-8 -*-
 
 from web.utils import Storage
+from sqlalchemy import __version__ as sqlalchemy_version
 
-db = "postgres:///soc"
+if sqlalchemy_version.startswith("0.5"):
+    db = "postgres:///soc"
+else:
+    db = "postgresql:///soc"
 init = "socmembers.xml"
 instance = u"soc"
 secret = u"..."
 cookie = "soclogin"
-maps_key = {"http": "...",
-            "https": "..."}
-pdflatex = "/usr/local/bin/safepdflatex"
+maps_key = Storage(http="ABQIAAAAnfs7bKE82qgb3Zc2YyS-oBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxSySz_REpPq-4WZA27OwgbtyR3VcA")
+pdflatex = "/usr/bin/pdflatex"
 xsltproc = "/usr/bin/xsltproc"
-tmpdir = "/chroot-texlive2009/work/soc"
+tmpdir = "/tmp/socmanager"
 formatdir = "formats"
 formats = [Storage(type="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
            Storage(type="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
@@ -29,6 +32,6 @@ mid_size = 750
 thumb_size = 150
 
 try:
-    from secrets import secret, maps_key
+    from secrets import *
 except ImportError:
-    print "No secrets found. Adjust configuration."
+    print "No secrets found, running at the default config."

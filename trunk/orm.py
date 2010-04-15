@@ -284,6 +284,7 @@ if __name__ == "__main__":
                              for key, value in attrs.items()
                              if key not in ["tags"]])
                 if data.has_key("passwd"):
+                    print "creating initial user account for %(firstname)s %(lastname)s, login %(login)s, password %(passwd)s" % data
                     data["salt"] = unicode(os.urandom(16).encode("hex"))
                     data["passwd"] = unicode(hashlib.md5((u"%s%s" % (data["salt"], data["passwd"])).encode("utf-8")).hexdigest())
                 self.member = Member(**data)
