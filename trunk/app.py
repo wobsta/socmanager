@@ -17,14 +17,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import site, cfg
-if cfg.sitepath:
-    site.addsitedir(sitepath)
-
-import cgi, hashlib, os, urllib, sys, time, datetime, re, uuid, xml.sax.saxutils, cStringIO, shutil, codecs
-cgi.maxlen = 1 * 1024 * 1024 # 1 MB limit for POST data
+import os, sys
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, path)
+
+import site, cfg
+if cfg.sitepath:
+    site.addsitedir(cfg.sitepath)
+
+import cgi, hashlib, urllib, time, datetime, re, uuid, xml.sax.saxutils, cStringIO, shutil, codecs
+cgi.maxlen = 1 * 1024 * 1024 # 1 MB limit for POST data
 emailPattern = re.compile(r"[a-zA-Z0-9\!\#\$\%\&\\\"\*\=\?\^\'\(\)\|\~\_\-\.\+\/]+@([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,4}$")
 
 import email.Charset, email.MIMEText, email.MIMEMultipart, email.MIMEBase, email.Utils, smtplib
