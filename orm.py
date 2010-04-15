@@ -7,9 +7,6 @@ from sqlalchemy.orm import mapper, relation, backref
 import tables, strorder, cfg
 
 import os
-varpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "var", "spool", "soc")
-thumbpath = os.path.join(varpath, "thumb")
-midpath = os.path.join(varpath, "mid")
 
 
 class Instance(object):
@@ -158,10 +155,10 @@ class Photo(object):
         return os.path.join(self.tag.photopath, self.name)
 
     def _midname(self):
-        return os.path.join(midpath, "%s.jpg" % self.hash)
+        return os.path.join(cfg.midpath, "%s.jpg" % self.hash)
 
     def _thumbname(self):
-        return os.path.join(thumbpath, "%s.jpg" % self.hash)
+        return os.path.join(cfg.thumbpath, "%s.jpg" % self.hash)
 
     filename = property(_filename)
     midname = property(_midname)

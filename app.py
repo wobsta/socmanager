@@ -17,13 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import site
-site.addsitedir("/home/soc/lib/python2.5/site-packages")
+import site, cfg
+if cfg.sitepath:
+    site.addsitedir(sitepath)
 
 import cgi, hashlib, os, urllib, sys, time, datetime, re, uuid, xml.sax.saxutils, cStringIO, shutil, codecs
 cgi.maxlen = 1 * 1024 * 1024 # 1 MB limit for POST data
 path = os.path.dirname(os.path.abspath(__file__))
-photopath = os.path.join(path, "..", "photos")
 sys.path.insert(0, path)
 emailPattern = re.compile(r"[a-zA-Z0-9\!\#\$\%\&\\\"\*\=\?\^\'\(\)\|\~\_\-\.\+\/]+@([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,4}$")
 
@@ -41,7 +41,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import desc
 
-import cfg, orm, tables
+import orm, tables
 
 urls = ("/login.html$", "login",
         "/logout.html$", "logout",
@@ -643,7 +643,8 @@ class member_admin_member_new(member_admin_member_form):
     @with_member_auth(admin_only=True)
     def GET(self):
         form = self.form()
-        form.messages.value = " ".join([self.instance.circulars[0].name, self.instance.circulars[-1].name])
+        if self.instance.circulars:
+            form.messages.value = self.instance.circulars[0].name
         return render.page("/member/admin/member/new.html", render.member.admin.member.new(form, cfg.maps_key[web.ctx.protocol]), self.member)
 
     @with_member_auth()
@@ -837,11 +838,11 @@ class member_admin_print(member_admin_work_on_selection):
             for merged_members in members_groups:
                 merged_members.sort(key=lambda member: member.gender)
             try:
-                os.makedirs(cfg.tmpdir)
+                os.makedirs(cfg.tmppath)
             except OSError:
                 pass
             if format.type == "xml":
-                filename = os.path.join(cfg.tmpdir, "%s.xml" % cfg.instance)
+                filename = os.path.join(cfg.tmppath, "%s.xml" % cfg.instance)
                 f = open(filename, "w")
                 x = xml.sax.saxutils.XMLGenerator(f, "utf-8")
                 x.startDocument()
@@ -871,15 +872,15 @@ class member_admin_print(member_admin_work_on_selection):
                 x.endElement("members")
                 x.characters("\n")
                 f.close()
-                os.system("%s %s %s > %s.xmlresult 2> %s.err" % (cfg.xsltproc, os.path.join(path, cfg.formatdir, format.xslt), filename, filename[:-4], filename[:-4]))
+                os.system("%s %s %s > %s.xmlresult 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", format.xslt), filename, filename[:-4], filename[:-4]))
                 web.header("Content-Type", "application/vnd.google-earth.kml+xml")
                 web.header("Content-Disposition", "attachment; filename=\"%s.kml\"" % cfg.instance)
-                f = open(os.path.join(cfg.tmpdir, "%s.xmlresult" % cfg.instance), "rb")
+                f = open(os.path.join(cfg.tmppath, "%s.xmlresult" % cfg.instance), "rb")
                 pdf = f.read()
                 f.close()
                 return pdf
             else:
-                filename = os.path.join(cfg.tmpdir, "%s.tex" % cfg.instance)
+                filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
                 f = codecs.open(filename, "w", encoding="utf-8")
                 f.write(u"\\documentclass{%s}\n" % format.cls.split(".")[0])
                 f.write(u"\\usepackage[utf8]{inputenc}\n")
@@ -906,13 +907,13 @@ class member_admin_print(member_admin_work_on_selection):
                 f.write(u"\\end{members}%\n")
                 f.write(u"\\end{document}\n")
                 f.close()
-                shutil.copy(os.path.join(path, cfg.formatdir, format.cls), cfg.tmpdir)
+                shutil.copy(os.path.join(path, "formats", format.cls), cfg.tmppath)
                 try:
-                    os.unlink(os.path.join(cfg.tmpdir, "%s.pdf" % cfg.instance))
+                    os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
                 except OSError:
                     pass
-                os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmpdir, cfg.pdflatex, filename, filename[:-4]))
-                f = open(os.path.join(cfg.tmpdir, "%s.pdf" % cfg.instance), "rb")
+                os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
+                f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
                 pdf = f.read()
                 f.close()
                 web.header("Content-Type", "application/pdf")
@@ -988,7 +989,10 @@ class member_admin_tag_new(member_admin_tag_form):
 
     @with_member_auth(admin_only=True)
     def GET(self):
-        photopaths = [os.path.normpath(os.path.join(photopath, dir)) for dir in os.listdir(photopath)]
+        try:
+            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
+        except OSError:
+            photopaths = []
         return render.page("/member/admin/tag/new.html", render.member.admin.tag.new(self.form(), photopaths), self.member)
 
     @with_member_auth(admin_only=True)
@@ -1036,7 +1040,10 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.photographer.value = tag.photographer
         form.labeledphotos.value = " ".join(photo.name for photo in tag.photos if photo.allow_labels)
         form.pos.value = str(self.instance.tags.index(tag))
-        photopaths = [os.path.normpath(os.path.join(photopath, dir)) for dir in os.listdir(photopath)]
+        try:
+            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
+        except OSError:
+            photopaths = []
         return render.page("/member/admin/tag/X/edit.html", render.member.admin.tag.edit(form, photopaths), self.member)
 
     @with_member_auth(admin_only=True)

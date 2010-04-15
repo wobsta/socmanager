@@ -1,8 +1,11 @@
 # -*- encoding: utf-8 -*-
 
+import os
+parentpath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from web.utils import Storage
 from sqlalchemy import __version__ as sqlalchemy_version
 
+sitepath = None
 if sqlalchemy_version.startswith("0.5"):
     db = "postgres:///soc"
 else:
@@ -14,8 +17,10 @@ cookie = "soclogin"
 maps_key = Storage(http="ABQIAAAAnfs7bKE82qgb3Zc2YyS-oBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxSySz_REpPq-4WZA27OwgbtyR3VcA")
 pdflatex = "/usr/bin/pdflatex"
 xsltproc = "/usr/bin/xsltproc"
-tmpdir = "/tmp/socmanager"
-formatdir = "formats"
+tmppath = "/tmp/socmanager"
+photopath = os.path.join(parentpath, "photos")
+thumbpath = os.path.join(parentpath, "var", "spool", "soc", "thumb")
+midpath = os.path.join(parentpath, "var", "spool", "soc", "mid")
 formats = [Storage(type="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
            Storage(type="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
            Storage(type="tex", name="address_sticker", description=u"Addressettikten (pdf)", cls="address_sticker.cls", merge="address"),
@@ -34,4 +39,4 @@ thumb_size = 150
 try:
     from secrets import *
 except ImportError:
-    print "No secrets found, running at the default config."
+    print "No secrets found (ok for dev mode; not appropriate for production)."
