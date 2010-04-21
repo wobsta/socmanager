@@ -47,8 +47,8 @@ the following aggregate function:
   );
 
 
-Deployment (for dev mode on http://localhost:8080)
---------------------------------------------------
+Setup transcript (dev mode on http://localhost:8080)
+----------------------------------------------------
 
 > virtualenv --no-site-packages socmanager
 > cd socmanager
