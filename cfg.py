@@ -19,8 +19,8 @@ pdflatex = "/usr/bin/pdflatex"
 xsltproc = "/usr/bin/xsltproc"
 tmppath = "/tmp/socmanager"
 photopath = os.path.join(parentpath, "photos")
-thumbpath = os.path.join(parentpath, "var", "spool", "soc", "thumb")
-midpath = os.path.join(parentpath, "var", "spool", "soc", "mid")
+thumbpath = os.path.join(parentpath, "var", "spool", "socmanager", "thumb")
+midpath = os.path.join(parentpath, "var", "spool", "socmanager", "mid")
 formats = [Storage(type="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
            Storage(type="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
            Storage(type="tex", name="address_sticker", description=u"Addressettikten (pdf)", cls="address_sticker.cls", merge="address"),

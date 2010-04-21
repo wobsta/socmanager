@@ -495,6 +495,7 @@ class member_photo(object):
             else:
                 f = open(photo.filename)
         except:
+            session.close()
             raise web.NotFound()
         web.header("Content-Type", "image/jpeg")
         web.header("Transfer-Encoding", "chunked")
