@@ -142,10 +142,12 @@ class Photo(object):
             self.hash = hash
             self.width, self.height = i.size
             self.size = os.path.getsize(self.filename)
+        if not os.path.exists(self.midname):
             i.thumbnail((cfg.mid_size, cfg.mid_size), Image.ANTIALIAS)
             i.save(self.midname, "JPEG")
             self.midwidth, self.midheight = i.size
             self.midsize = os.path.getsize(self.midname)
+        if not os.path.exists(self.thumbname):
             i.thumbnail((cfg.thumb_size, cfg.thumb_size), Image.ANTIALIAS)
             i.save(self.thumbname, "JPEG")
             self.thumbwidth, self.thumbheight = i.size
