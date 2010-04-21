@@ -844,7 +844,7 @@ class member_admin_print(member_admin_work_on_selection):
                 os.makedirs(cfg.tmppath)
             except OSError:
                 pass
-            if format.type == "xml":
+            if format.processor == "xml":
                 filename = os.path.join(cfg.tmppath, "%s.xml" % cfg.instance)
                 f = open(filename, "w")
                 x = xml.sax.saxutils.XMLGenerator(f, "utf-8")
@@ -868,6 +868,15 @@ class member_admin_print(member_admin_work_on_selection):
                             x.characters("\n%s\n" % value)
                             x.endElement(name)
                             x.characters("\n")
+                        x.startElement("tags", {})
+                        x.characters("\n")
+                        for tag in member.tags:
+                            x.startElement("tag", {})
+                            x.characters("\n%s\n" % tag.name)
+                            x.endElement("tag")
+                            x.characters("\n")
+                        x.endElement("tags")
+                        x.characters("\n")
                         x.endElement("member")
                         x.characters("\n")
                     x.endElement("memberGroup")
@@ -875,13 +884,13 @@ class member_admin_print(member_admin_work_on_selection):
                 x.endElement("members")
                 x.characters("\n")
                 f.close()
-                os.system("%s %s %s > %s.xmlresult 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", format.xslt), filename, filename[:-4], filename[:-4]))
-                web.header("Content-Type", "application/vnd.google-earth.kml+xml")
-                web.header("Content-Disposition", "attachment; filename=\"%s.kml\"" % cfg.instance)
-                f = open(os.path.join(cfg.tmppath, "%s.xmlresult" % cfg.instance), "rb")
-                pdf = f.read()
+                os.system("%s %s %s > %s.result 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", format.xslt), filename, filename[:-4], filename[:-4]))
+                web.header("Content-Type", format.mime)
+                web.header("Content-Disposition", "attachment; filename=\"%s.%s\"" % (cfg.instance, format.extension))
+                f = open(os.path.join(cfg.tmppath, "%s.result" % cfg.instance), "rb")
+                data = f.read()
                 f.close()
-                return pdf
+                return data
             else:
                 filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
                 f = codecs.open(filename, "w", encoding="utf-8")

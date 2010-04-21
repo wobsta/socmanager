@@ -21,13 +21,14 @@ tmppath = "/tmp/socmanager"
 photopath = os.path.join(parentpath, "photos")
 thumbpath = os.path.join(parentpath, "var", "spool", "socmanager", "thumb")
 midpath = os.path.join(parentpath, "var", "spool", "socmanager", "mid")
-formats = [Storage(type="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
-           Storage(type="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
-           Storage(type="tex", name="address_sticker", description=u"Addressettikten (pdf)", cls="address_sticker.cls", merge="address"),
-           Storage(type="tex", name="address_panel", description=u"Addressaufdruck für Fensterumschläge (pdf)", cls="address_panel.cls", merge="address"),
-           Storage(type="tex", name="badge", description=u"Namensschilder (pdf)", cls="badge.cls", merge=None),
-           Storage(type="tex", name="voucher", description=u"Gutschein (pdf)", cls="voucher.cls", merge=None),
-           Storage(type="xml", name="kml", description=u"Google Earth Datei (kml)", xslt="kml.xslt", merge="address")]
+formats = [Storage(processor="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
+           Storage(processor="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
+           Storage(processor="tex", name="address_sticker", description=u"Addressettikten (pdf)", cls="address_sticker.cls", merge="address"),
+           Storage(processor="tex", name="address_panel", description=u"Addressaufdruck für Fensterumschläge (pdf)", cls="address_panel.cls", merge="address"),
+           Storage(processor="tex", name="badge", description=u"Namensschilder (pdf)", cls="badge.cls", merge=None),
+           Storage(processor="tex", name="voucher", description=u"Gutschein (pdf)", cls="voucher.cls", merge=None),
+           Storage(processor="xml", name="kml", description=u"Google Earth Datei (kml)", xslt="kml.xslt", merge="address", mime="application/vnd.google-earth.kml+xml", extension="kml"),
+           Storage(processor="xml", name="program", description=u"Namensliste für Programmheft (txt)", xslt="program.xslt", merge=None, mime="text/plain", extension="txt")]
 from_email = "info@schwaebischer-oratorienchor.de"
 attachments = [Storage(type="PDF Dokument", mime="application/pdf", icon="pdf.png"),
                Storage(type="Google Earth KML Datei", mime="application/vnd.google-earth.kml+xml", icon="kml.png"),
