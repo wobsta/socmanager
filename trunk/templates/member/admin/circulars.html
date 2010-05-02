@@ -16,7 +16,7 @@ $else:
   <tr><th>Name</th><th>Mitglieder</th><th>davon ungelesen</th><th>online gelesen</th><th>als Brief gelesen</th><th>Aktion</th></tr>
   $for circular, total, total_ids, total_selected, total_selected_ids, unread, unread_ids, unread_selected, unread_selected_ids, online, online_ids, online_selected, online_selected_ids, snailmail, snailmail_ids, snailmail_selected, snailmail_selected_ids in circulars:
       <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
-        <td>$circular.title</td>
+        <td>$circular.name</td>
         <td style="text-align:center;" nowrap>
           $if members:
               <a href="members.html?selection=$total_selected_ids">$(total_selected or 0)</a> von
