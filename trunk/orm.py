@@ -6,8 +6,6 @@ from sqlalchemy.orm import mapper, relation, backref
 
 import tables, strorder, cfg
 
-import os
-
 
 class Instance(object):
 
