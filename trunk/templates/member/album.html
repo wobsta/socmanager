@@ -3,7 +3,7 @@ $def with (tag, page)
 <h2>$tag.description</h2>
 <p>Fotos von $tag.photographer</p>
 $def paginator():
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0px">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0pt;">
       <tr>
         <td align="left">
           $if len(tag.photos) > 20 and page != 1:
@@ -39,7 +39,7 @@ $def paginator():
       </tr>
     </table>
 $:paginator()
-<table cellpadding="0" cellspacing="0" border="0">
+<table cellpadding="0" cellspacing="0" border="0" width="750" style="margin:0px auto;">
 $ has_slash_tr = True
 $for photo in tag.photos:
     $if (loop.index0+20)/20 == page:
