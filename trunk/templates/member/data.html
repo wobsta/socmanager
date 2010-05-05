@@ -15,8 +15,10 @@ $var script:
         marker = new GMarker(point, {draggable: true});
         geocoder = new GClientGeocoder();
         GEvent.addListener(marker, "dragend", function() {
-          document.getElementById("lateral").value = marker.getLatLng().lat().toFixed(6);
-          document.getElementById("longitudinal").value = marker.getLatLng().lng().toFixed(6);
+          $$("#lateral").val(marker.getLatLng().lat().toFixed(6));
+          $$("#longitudinal").val(marker.getLatLng().lng().toFixed(6));
+          $$("#lateral_msg").hide();
+          $$("#longitudinal_msg").hide();
         });
         map.addOverlay(marker);
       }
@@ -29,16 +31,34 @@ $var script:
           function(point) {
             if (!point) {
               alert(address + " wurde nicht gefunden, bitte manuell auf der Karte einstellen.");
+              $$("#lateral").val("");
+              $$("#longitudinal").val("");
+              $$("#lateral_msg").show();
+              $$("#longitudinal_msg").show();
             } else {
               marker.setPoint(point);
               map.setCenter(point, 16);
-              document.getElementById("lateral").value = point.lat().toFixed(6);
-              document.getElementById("longitudinal").value = point.lng().toFixed(6);
+              $$("#lateral").val(point.lat().toFixed(6));
+              $$("#longitudinal").val(point.lng().toFixed(6));
+              $$("#lateral_msg").hide();
+              $$("#longitudinal_msg").hide();
             }
           }
         );
       }
     }
+    </script>
+    <script src="../../static/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      $$(function() {
+        $$.each(["street", "zip", "city", "phone", "email"], function(i, val) {
+          $$("#" + val).after('<span id="'+val+'_msg" class="msg">bitte vervollständigen</span>').keyup(function() {
+            if (this.value) {$$("#"+this.id+"_msg").hide()} else {$$("#"+this.id+"_msg").show()};
+          }).filter('[value!=""]').next().hide();
+        });
+        $$("#lateral").after('<span id="lateral_msg" class="msg">Straße, PLZ und Ort ausfüllen und</span>').filter('[value!=""]').next().hide();
+        $$("#longitudinal").after('<span id="longitudinal_msg" class="msg">unten “Adresse neu suchen” klicken</span>').filter('[value!=""]').next().hide();
+      });
     </script>
 $var body_attrs = ' onload="initialize()" onunload="GUnload()"'
 <h1>Mitgliederdaten aktualiseren</h1>
