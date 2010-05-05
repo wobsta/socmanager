@@ -64,6 +64,7 @@ urls = ("/login.html$", "login",
         "/member/admin/member/changes.html$", "member_admin_member_changes",
         "/member/admin/member/(\d+)/edit.html$", "member_admin_member_edit",
         "/member/admin/member/(\d+)/delete.html$", "member_admin_member_delete",
+        "/member/admin/member/(\d+)/clearpasswd.html$", "member_admin_member_clearpasswd",
         "/member/admin/member/(\d+)/changes.html$", "member_admin_member_changes",
         "/member/admin/print.html$", "member_admin_print",
         "/member/admin/tags.html$", "member_admin_tags",
@@ -776,6 +777,24 @@ class member_admin_member_delete(object):
         for message in member.messages:
             web.ctx.orm.delete(message)
         web.ctx.orm.delete(member)
+        raise web.seeother("../../members.html")
+
+
+class member_admin_member_clearpasswd(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, id):
+        member = web.ctx.orm.query(orm.Member).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        return render.page("/member/admin/member/X/clearpasswd.html", render.member.admin.member.clearpasswd(member), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, id):
+        member = web.ctx.orm.query(orm.Member).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        old = unicode(member)
+        member.login = member.salt = member.passwd = None
+        new = unicode(member)
+        if old != new:
+            web.ctx.orm.add(orm.Change(u"%s\n\nwurde geändert in\n\n%s" % (old, new), u"Passwort gelöscht von Mitglied", member, self.member))
         raise web.seeother("../../members.html")
 
 
