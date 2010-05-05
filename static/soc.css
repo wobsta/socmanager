@@ -161,3 +161,8 @@ li
   padding-left:0.5em;
   padding-right:0.5em;
 }
+#content form table tr td span.msg
+{
+  padding-left:0.5em;
+  color:#933;
+}
