@@ -93,7 +93,7 @@ message_table = Table("message", metadata,
                       Column("circular_id", Integer, ForeignKey("circular.id"), nullable=False),
                       Column("access_by", Unicode),
                       Column("access_when", DateTime),
-                      CheckConstraint("access_by in ('online', 'snailmail')"),
+                      CheckConstraint("access_by in ('online', 'snailmail', 'phone')"),
                       UniqueConstraint("member_id", "circular_id"))
 
 attachment_table = Table("attachment", metadata,
