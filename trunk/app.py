@@ -604,7 +604,7 @@ def get_circulars(i, get_list=False):
             return True
         else:
             for message in i.messages.split():
-                if message.find(":") != -1 and message.split(":", 1)[1] not in ["snailmail", "online"]:
+                if message.find(":") != -1 and message.split(":", 1)[1] not in ["snailmail", "online", "phone"]:
                     return False
     return [(web.ctx.orm.query(orm.Circular).filter_by(name=message.split(":")[0]).join(orm.Instance).filter_by(name=cfg.instance).one(),
              message.find(":") != -1 and message.split(":", 1)[1] or None)
@@ -1148,9 +1148,11 @@ class member_admin_circulars(member_admin_work_on_selection):
         return web.form.Form(web.form.Dropdown("circular", [(circular.id, circular.title) for circular in self.instance.circulars], description="Chorbrief"),
                              web.form.Dropdown("action", [("new:none", "neu einstellen und als ungelesen markieren"),
                                                           ("new:online", "neu einstellen und als online gelesen markieren"),
+                                                          ("new:phone", "neu einstellen und als per Telefon informiert markieren"),
                                                           ("new:snailmail", "neu einstellen und als Brief gelesen marieren"),
                                                           ("change:none", "als ungelesen markieren"),
                                                           ("change:online", "als online gelesen markieren"),
+                                                          ("change:phone", "als per Telefon informiert markieren"),
                                                           ("change:snailmail", "als Brief gelesen marieren"),
                                                           ("delete", "entfernen")], description="Aktion"),
                              web.form.Hidden("selection"),
@@ -1169,6 +1171,8 @@ class member_admin_circulars(member_admin_work_on_selection):
         unread_selected = count_ids_stmt.filter_by(access_by=None).filter(orm.Message.member_id == func.any([member.id for member in members])).subquery()
         online = count_ids_stmt.filter_by(access_by=u'online').subquery()
         online_selected = count_ids_stmt.filter_by(access_by=u'online').filter(orm.Message.member_id == func.any([member.id for member in members])).subquery()
+        phone = count_ids_stmt.filter_by(access_by=u'phone').subquery()
+        phone_selected = count_ids_stmt.filter_by(access_by=u'phone').filter(orm.Message.member_id == func.any([member.id for member in members])).subquery()
         snailmail = count_ids_stmt.filter_by(access_by=u'snailmail').subquery()
         snailmail_selected = count_ids_stmt.filter_by(access_by=u'snailmail').filter(orm.Message.member_id == func.any([member.id for member in members])).subquery()
         circulars = web.ctx.orm.query(orm.Circular,
@@ -1178,6 +1182,8 @@ class member_admin_circulars(member_admin_work_on_selection):
                                       unread_selected.c.count, unread_selected.c.ids,
                                       online.c.count, online.c.ids,
                                       online_selected.c.count, online_selected.c.ids,
+                                      phone.c.count, phone.c.ids,
+                                      phone_selected.c.count, phone_selected.c.ids,
                                       snailmail.c.count, snailmail.c.ids,
                                       snailmail_selected.c.count, snailmail_selected.c.ids)\
                                .outerjoin((total, orm.Circular.id == total.c.circular_id))\
@@ -1186,6 +1192,8 @@ class member_admin_circulars(member_admin_work_on_selection):
                                .outerjoin((unread_selected, orm.Circular.id == unread_selected.c.circular_id))\
                                .outerjoin((online, orm.Circular.id == online.c.circular_id))\
                                .outerjoin((online_selected, orm.Circular.id == online_selected.c.circular_id))\
+                               .outerjoin((phone, orm.Circular.id == phone.c.circular_id))\
+                               .outerjoin((phone_selected, orm.Circular.id == phone_selected.c.circular_id))\
                                .outerjoin((snailmail, orm.Circular.id == snailmail.c.circular_id))\
                                .outerjoin((snailmail_selected, orm.Circular.id == snailmail_selected.c.circular_id))\
                                .order_by(orm.Circular.instance_order).all()
