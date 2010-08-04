@@ -457,16 +457,33 @@ class member_photos_labels(object):
         i = web.input()
         photo = web.ctx.orm.query(orm.Photo).filter_by(name=i.photo).join(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
         if i.action == "save":
+            try:
+                top = int(i.top)
+                left = int(i.left)
+                width = int(i.width)
+                height = int(i.height)
+            except ValueError:
+                raise web.BadRequest()
+            if top + height < 5:
+                height = 5 - top;
+            if left + width < 5:
+                width = 5 - left;
+            if top + height > photo.midheight - 5:
+                height = top + height - photo.midheight + 5
+                top = photo.midheight - 5
+            if left + width > photo.midwidth - 5:
+                width = left + width - photo.midwidth + 5
+                left = photo.midwidth - 5
             if i.id == "new":
-                label = orm.PhotoLabel(photo, i.top, i.left, i.width, i.height, i.text)
+                label = orm.PhotoLabel(photo, top, left, width, height, i.text)
                 web.ctx.orm.add(label)
                 web.ctx.orm.commit()
             else:
                 label = web.ctx.orm.query(orm.PhotoLabel).filter_by(id=int(i.id.split("-")[1])).filter_by(photo=photo).one()
-                label.top = i.top
-                label.left = i.left
-                label.width = i.width
-                label.height = i.height
+                label.top = top
+                label.left = left
+                label.width = width
+                label.height = height
                 label.text = i.text
             web.header("Content-Type", "text/json")
             return json.dumps({"annotation_id": "label-%d" % label.id})
