@@ -502,8 +502,7 @@ class member_photo(object):
 
     @with_member_auth()
     def GET(self, tag, name):
-        session = scoped_session(sessionmaker(bind=engine)) # need a local session for chunked response
-        photo = session.query(orm.Photo).filter_by(name=name).join(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
+        photo = web.ctx.orm.query(orm.Photo).filter_by(name=name).join(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
         try:
             type = web.input().get("type")
             if type == "thumb":
@@ -513,16 +512,9 @@ class member_photo(object):
             else:
                 f = open(photo.filename)
         except:
-            session.close()
             raise web.NotFound()
         web.header("Content-Type", "image/jpeg")
-        web.header("Transfer-Encoding", "chunked")
-        data = f.read(2**16)
-        while data:
-            yield data
-            data = f.read(2**16)
-        f.close()
-        session.close()
+        return f
 
 # }}}
 
