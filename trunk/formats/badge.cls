@@ -27,7 +27,7 @@
 \ifnum\value{memberCount}=4\relax\memberReversetrue\fi
 \ifmemberReverse\rotatebox[origin=c]{180}{\fi
 \begin{picture}(90,54)
-\put(-1,37){\includegraphics[width=92mm]{soclogo}}
+\put(-1.7142857,33.846423){\includegraphics[width=93.42857mm]{soclogo}}
 \put(7,25){\fontsize{16}{20}\bfseries\member@Firstname{} \member@Lastname}
 \put(7,17){\fontsize{12}{14}\bfseries\member@City}
 \put(0,-0.5){\line(0,1){1}}
