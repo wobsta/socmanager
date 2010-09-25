@@ -3,7 +3,7 @@
 \setlength\textwidth{6.5in}
 \setlength\textheight{8in}
 \pagenumbering{arabic}
-\RequirePackage{graphicx,ifthen}
+\RequirePackage{graphicx,color,ifthen}
 \RequirePackage{helvet}
 \RequirePackage[paperwidth=180mm,paperheight=270mm]{geometry}
 \geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
@@ -32,12 +32,12 @@
 \put(7,17){\fontsize{12}{14}\bfseries\member@City}
 \put(0,-0.5){\line(0,1){1}}
 \put(-0.5,0){\line(1,0){1}}
-\put(0,53.5){\line(0,1){1}}
-\put(-0.5,54){\line(1,0){1}}
+\put(0,53.5){\color{white}\line(0,1){1}}
+\put(-0.5,54){\color{white}\line(1,0){1}}
 \put(90,-0.5){\line(0,1){1}}
 \put(89.5,0){\line(1,0){1}}
-\put(90,53.5){\line(0,1){1}}
-\put(89.5,54){\line(1,0){1}}
+\put(90,53.5){\color{white}\line(0,1){1}}
+\put(89.5,54){\color{white}\line(1,0){1}}
 \end{picture}%
 \ifmemberReverse}\fi
 \hspace{0pt plus 1pt}%
