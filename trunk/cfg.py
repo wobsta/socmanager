@@ -23,6 +23,7 @@ thumbpath = os.path.join(parentpath, "var", "spool", "socmanager", "thumb")
 midpath = os.path.join(parentpath, "var", "spool", "socmanager", "mid")
 formats = [Storage(processor="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None),
            Storage(processor="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None),
+           Storage(processor="tex", name="chorverband", description=u"Mitgliederliste für Chorverband (pdf)", cls="chorverband.cls", merge=None),
            Storage(processor="tex", name="address_sticker", description=u"Addressettikten (pdf)", cls="address_sticker.cls", merge="address"),
            Storage(processor="tex", name="address_panel", description=u"Addressaufdruck für Fensterumschläge (pdf)", cls="address_panel.cls", merge="address"),
            Storage(processor="tex", name="badge", description=u"Namensschilder (pdf)", cls="badge.cls", merge=None),
