@@ -32,6 +32,11 @@ body
   font-weight:bold;
   color:#fd0;
 }
+#menu .new
+{
+  padding-left:28px;
+  background:url(new.gif) no-repeat left center;
+}
 #menu .member
 {
   padding-top:2em;

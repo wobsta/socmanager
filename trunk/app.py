@@ -32,6 +32,8 @@ emailPattern = re.compile(r"[a-zA-Z0-9\!\#\$\%\&\\\"\*\=\?\^\'\(\)\|\~\_\-\.\+\/
 import email.Charset, email.MIMEText, email.MIMEMultipart, email.MIMEBase, email.Utils, smtplib
 email.Charset.add_charset("utf-8", email.Charset.SHORTEST, None, None)
 
+import Image, ImageDraw
+
 try:
     import json
 except ImportError:
@@ -48,6 +50,9 @@ import orm, tables
 urls = ("/login.html$", "login",
         "/logout.html$", "logout",
         "/link.html$", "link",
+        "/tickets.html$", "tickets",
+        "/tickets.png$", "ticketsmap",
+        "/tickets_ok.html$", "tickets_ok",
         "(/press|/member|/member/photos)$", "add_slash",
         "/member/(index.html|tags.html|privacy.html)?$", "member",
         "/member/data.html$", "member_data",
@@ -71,6 +76,11 @@ urls = ("/login.html$", "login",
         "/member/admin/tag/new.html$", "member_admin_tag_new",
         "/member/admin/tag/(\d+)/edit.html$", "member_admin_tag_edit",
         "/member/admin/tag/(\d+)/delete.html$", "member_admin_tag_delete",
+        "/member/admin/tickets/(\d+)/index.html$", "member_admin_tickets",
+        "/member/admin/tickets/(\d+)/map.png$", "member_admin_ticketmap",
+        "/member/admin/tickets/(\d+)/new.html$", "member_admin_tickets_new",
+        "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
+        "/member/admin/tickets/(\d+)/sold/(\d+)/delete.html$", "member_admin_tickets_delete",
         "/member/admin/circulars.html$", "member_admin_circulars",
         "/member/admin/circular/copy.html$", "member_admin_circular_copy",
         "/member/admin/circular/new.html$", "member_admin_circular_new",
@@ -109,7 +119,7 @@ def load_sqla(handler):
 app = web.application(urls, locals())
 app.add_processor(load_sqla)
 
-render = web.template.render(os.path.join(path, "templates"), globals={"str": str, "sorted": sorted})
+render = web.template.render(os.path.join(path, "templates"), globals={"str": str, "sorted": sorted, "sum": sum})
 
 # {{{ helper
 def TeX_escape(value):
@@ -225,7 +235,7 @@ class pages(object):
     @with_member_info
     def GET(self, path):
         org_path = None
-        if path == "page.html":
+        if path in ["page.html", "tickets_pay.html", "tickets_pickup.html"]:
             raise web.NotFound()
         if not path:
             path = "index.html"
@@ -241,6 +251,116 @@ class pages(object):
         except AttributeError:
             raise web.NotFound()
         return render.page(org_path or "/%s" % path, content(), self.member)
+
+
+class ticketsmap(object):
+
+    def GET(self):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
+        selected = web.input().get("selected")
+        if selected:
+            selected = map(int, selected.split(','))
+        else:
+            selected = []
+        sold = web.input().get("sold")
+        if sold:
+            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        f = ticketmap(tag, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
+        web.header("Content-Type", "image/png")
+        web.header("Cache-Control", "no-cache, must-revalidate")
+        return f
+
+
+class ticket_form(object):
+
+    def form(self):
+        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
+                             web.form.Textbox("name", notnull, description=u"Nachname", size=50),
+                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
+                             web.form.Checkbox("newsletter", description="Rundschreiben"),
+                             web.form.Hidden("selected"),
+                             web.form.Button("Karten verbindlich kaufen", type="submit"),
+                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
+
+
+class tickets(ticket_form):
+
+    @with_member_info
+    def GET(self):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
+        if not tag:
+            return render.page("/tickets_closed.html", render.tickets_closed(), self.member)
+        return render.page("/tickets.html", render.tickets(form, tag, []), self.member)
+
+    @with_member_info
+    def POST(self):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
+        if not tag:
+            return render.page("/tickets_closed.html", render.tickets_closed(), self.member)
+        x = web.input().get("map.x")
+        y = web.input().get("map.y")
+        clicked = None
+        if x and y:
+            x = int(x)
+            y = int(y)
+            clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
+        if form.validates() and x is None and y is None and form.d.selected:
+            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=True, tag=tag)
+            web.ctx.orm.add(sold)
+            web.ctx.orm.commit()
+            selected = map(int, form.d.selected.split(","))
+            for ticket_id in selected:
+                web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
+                web.ctx.orm.commit()
+                if not web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=int(ticket_id)).filter_by(sold_id=sold.id).first():
+                    web.ctx.orm.query(orm.Ticket).filter_by(sold_id=sold.id).update({"sold_id": None})
+                    web.ctx.orm.delete(sold)
+                    form.selected.value = ""
+                    return render.page("/tickets.html", render.tickets(form, tag, [], failed=True), self.member)
+            s = smtplib.SMTP()
+            s.connect()
+            msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(tag, sold)).encode("utf-8"), _charset="utf-8")
+            msg["Subject"] = "Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+            msg["From"] = cfg.from_email
+            to_emails = sold.email.split(",")
+            msg["To"] = to_emails[0]
+            if len(to_emails) > 1:
+                msg["Cc"] = ",".join(to_emails[1:])
+            msg["Date"] = email.Utils.formatdate(localtime=True)
+            to_emails.append(cfg.from_email)
+            s.sendmail(cfg.from_email, to_emails, msg.as_string())
+            s.close()
+            raise web.seeother("tickets_ok.html?id=%s&code=%s" % (sold.id, sold.bankcode))
+        else:
+            if form.d.selected:
+                selected = set(map(int, form.d.selected.split(",")))
+            else:
+                selected = set()
+            if clicked:
+                if clicked.id in selected:
+                    selected.remove(clicked.id)
+                elif not clicked.sold_id:
+                    selected.add(clicked.id)
+            selected = list(selected)
+            selected.sort()
+            tickets = [web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=ticket_id).first()
+                       for ticket_id in selected]
+            form.selected.value = ",".join(map(str, selected))
+            return render.page("/tickets.html", render.tickets(form, tag, tickets), self.member)
+
+
+class tickets_ok(object):
+
+    @with_member_info
+    def GET(self):
+        id = int(web.input().get("id"))
+        code = web.input().get("code")
+        tag = web.ctx.orm.query(orm.Tag).join(orm.Instance).filter_by(name=cfg.instance).first()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=id, bankcode=code).first()
+        return render.page("/tickets_ok.html", render.tickets_ok(tag, sold), self.member)
+
 # }}} public
 
 # {{{ member
@@ -252,6 +372,8 @@ class member(object):
             path = "index.html"
         return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member), self.member)
 
+
+notnull = web.form.Validator("Notwendige Angabe", bool)
 
 def checkemail(i):
     if not i.email:
@@ -976,10 +1098,12 @@ class member_admin_tags(member_admin_work_on_selection):
         all = count_ids_stmt.subquery()
         selected = count_ids_stmt.filter(tables.member_tag_table.c.member_id == func.any([member.id for member in members])).subquery()
         photos = web.ctx.orm.query(orm.Photo.tag_id, func.count().label("count")).group_by(orm.Photo.tag_id).subquery()
-        tags = web.ctx.orm.query(orm.Tag, all.c.count, all.c.ids, selected.c.count, selected.c.ids, photos.c.count)\
+        tickets = web.ctx.orm.query(orm.Ticket.tag_id, func.count().label("count")).group_by(orm.Ticket.tag_id).subquery()
+        tags = web.ctx.orm.query(orm.Tag, all.c.count, all.c.ids, selected.c.count, selected.c.ids, photos.c.count, tickets.c.count)\
                           .outerjoin((all, orm.Tag.id == all.c.tag_id))\
                           .outerjoin((selected, orm.Tag.id == selected.c.tag_id))\
                           .outerjoin((photos, orm.Tag.id == photos.c.tag_id))\
+                          .outerjoin((tickets, orm.Tag.id == tickets.c.tag_id))\
                           .order_by(orm.Tag.instance_order).all()
         return render.page("/member/admin/tags.html", render.member.admin.tags(tags, members), self.member)
 
@@ -1022,6 +1146,9 @@ class member_admin_tag_form(object):
                              web.form.Textbox("photopath", description="Foto-Verzeichnis", size=50),
                              web.form.Textbox("photographer", description="Fotograf", size=50),
                              web.form.Textbox("labeledphotos", description="beschriftbare Fotos", size=50),
+                             web.form.Checkbox("onsale", description="Kartenverkauf"),
+                             web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
+                             web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
                              web.form.Button("Speichern", type="submit"))
 
 
@@ -1044,7 +1171,7 @@ class member_admin_tag_new(member_admin_tag_form):
             if form.validates():
                 web.header("Content-Type", "text/plain; charset=utf-8")
                 web.header("Transfer-Encoding", "chunked")
-                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer)
+                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, web.input().has_key("onsale"), form.d.ticket_title, form.d.ticket_description)
                 yield "scanning photos…\n"
                 if tag.photopath:
                     for photo in sorted(os.listdir(tag.photopath)):
@@ -1079,6 +1206,9 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.photopath.value = tag.photopath
         form.photographer.value = tag.photographer
         form.labeledphotos.value = " ".join(photo.name for photo in tag.photos if photo.allow_labels)
+        form.onsale.checked = tag.onsale
+        form.ticket_title.value = tag.ticket_title
+        form.ticket_description.value = tag.ticket_description
         form.pos.value = str(self.instance.tags.index(tag))
         try:
             photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
@@ -1101,6 +1231,9 @@ class member_admin_tag_edit(member_admin_tag_form):
                 tag.visible = web.input().has_key("visible")
                 tag.photopath = form.d.photopath
                 tag.photographer = form.d.photographer
+                tag.onsale = web.input().has_key("onsale")
+                tag.ticket_title = form.d.ticket_title
+                tag.ticket_description = form.d.ticket_description
                 instance.tags.remove(tag)
                 instance.insert_tag(int(form.d.pos), tag)
                 photos = dict((photo.name, photo)
@@ -1148,6 +1281,188 @@ class member_admin_tag_delete(object):
         web.ctx.orm.delete(tag)
         raise web.seeother("../../tags.html")
 # }}} admin tags
+
+# {{{ admin tickets
+def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
+    i = Image.fromstring("RGB", (tag.ticketmap_width, tag.ticketmap_height), tag.ticketmap)
+    if not include_wheelchair_only:
+        tickets = [ticket for ticket in tag.tickets if ticket.wheelchair != 'only' or ticket.sold_id is not None]
+    else:
+        tickets = tag.tickets
+    for ticket in tickets:
+        if ticket.sold_id is None or sold and ticket.sold == sold:
+            d = ticket.image_strong
+        else:
+            d = ticket.image_light
+        i2 = Image.fromstring("RGBA", (ticket.right-ticket.left, ticket.bottom-ticket.top), d)
+        i.paste(i2, (ticket.left, ticket.top, ticket.right, ticket.bottom), i2)
+        if ticket.id in selected:
+            draw = ImageDraw.Draw(i)
+            x = (ticket.left + ticket.right) / 2
+            y = (ticket.top + ticket.bottom) / 2
+            draw.ellipse((x-5, y-5, x+5, y+5), fill=(0, 0, 0))
+            del draw
+    f = cStringIO.StringIO()
+    i.save(f, "png")
+    f.seek(0)
+    return f
+
+
+class member_admin_tickets():
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        solds = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).all()
+        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, solds), self.member)
+
+
+class member_admin_ticketmap():
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        selected = web.input().get("selected")
+        if selected:
+            selected = map(int, selected.split(','))
+        else:
+            selected = []
+        sold = web.input().get("sold")
+        if sold:
+            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        f = ticketmap(tag, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
+        web.header("Content-Type", "image/png")
+        web.header("Cache-Control", "no-cache, must-revalidate")
+        return f
+
+
+class member_admin_ticket_form(object):
+
+    def form(self):
+        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
+                             web.form.Textbox("name", notnull, description=u"Name", size=50),
+                             web.form.Textbox("email", description="E-Mail", size=50),
+                             web.form.Checkbox("newsletter", description="Rundschreiben"),
+                             web.form.Checkbox("online", description="online-Bestellung"),
+                             web.form.Hidden("selected"),
+                             web.form.Button("Speichern", type="submit"),
+                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
+
+
+class member_admin_tickets_new(member_admin_ticket_form):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        return render.page("/member/admin/tickets/X/new.html", render.member.admin.ticket.new(form, tag), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        x = web.input().get("map.x")
+        y = web.input().get("map.y")
+        clicked = None
+        if x and y:
+            x = int(x)
+            y = int(y)
+            clicked = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
+        if form.validates() and x is None and y is None:
+            web.ctx.orm.add(orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=web.input().has_key("online"), tag=tag))
+            raise web.seeother("index.html")
+        else:
+            if form.d.selected:
+                selected = set(map(int, form.d.selected.split(",")))
+            else:
+                selected = set()
+            if clicked:
+                if clicked.id in selected:
+                    selected.remove(clicked.id)
+                else:
+                    selected.add(clicked.id)
+            form.selected.value = ",".join(map(str, selected))
+            return render.page("/member/admin/tickets/X/new.html", render.member.admin.ticket.new(form, tag), self.member)
+
+
+class member_admin_tickets_edit(member_admin_ticket_form):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag, sold):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        form.gender.value = sold.gender
+        form.name.value = sold.name
+        form.email.value = sold.email
+        form.newsletter.checked = sold.newsletter
+        form.online.checked = sold.online
+        form.selected.value = ",".join(str(ticket.id) for ticket in sold.tickets)
+        return render.page("/member/admin/tickets/X/sold/X/edit.html", render.member.admin.ticket.edit(form, tag, sold), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag, sold):
+        form = self.form()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        x = web.input().get("map.x")
+        y = web.input().get("map.y")
+        clicked = None
+        if x and y:
+            x = int(x)
+            y = int(y)
+            clicked = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
+        if form.validates() and x is None and y is None:
+            sold.gender = form.d.gender
+            sold.name = form.d.name
+            sold.email = form.d.email
+            sold.newsletter = web.input().has_key("newsletter")
+            sold.online = web.input().has_key("online")
+            if form.d.selected:
+                selected = set(map(int, form.d.selected.split(",")))
+            else:
+                selected = []
+            for ticket in sold.tickets:
+                if ticket.id in selected:
+                    selected.remove(ticket.id)
+                else:
+                    ticket.sold_id = None
+            for ticket_id in selected:
+                web.ctx.orm.query(orm.Ticket).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
+                web.ctx.orm.commit()
+            raise web.seeother("../../index.html")
+        else:
+            if form.d.selected:
+                selected = set(map(int, form.d.selected.split(",")))
+            else:
+                selected = set()
+            if clicked:
+                if clicked.id in selected:
+                    selected.remove(clicked.id)
+                else:
+                    selected.add(clicked.id)
+            form.selected.value = ",".join(map(str, selected))
+            return render.page("/member/admin/tickets/X/sold/X/edit.html", render.member.admin.ticket.edit(form, tag, sold), self.member)
+
+
+class member_admin_tickets_delete(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        return render.page("/member/admin/link/X/sold/X/delete.html", render.member.admin.ticket.delete(sold), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        web.ctx.orm.query(orm.Ticket).filter_by(sold_id=sold.id).update({"sold_id": None})
+        web.ctx.orm.delete(sold)
+        raise web.seeother("../../index.html")
+
+
+# }}} admin tickets
 
 # {{{ admin circulars
 class member_admin_circulars(member_admin_work_on_selection):
