@@ -8,13 +8,13 @@ $if members:
       <input type="hidden" name="selection" value="$(",".join(str(member.id) for member in members))">
     </p>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><th>Name</th><th>Mitglieder</th><th>sichtbar</th><th>Fotoalbum</th>
+  <tr><th>Name</th><th>Mitglieder</th><th>sichtbar</th><th>Fotoalbum</th><th>Karten</th>
     $if members:
         <th>Aktion für Tag</th><th>Aktion für ausgewählte Mitglieder</th>
     $else:
         <th>Aktion</th>
   </tr>
-  $for tag, all_count, all_ids, select_count, selected_ids, photos in tags:
+  $for tag, all_count, all_ids, select_count, selected_ids, photos, tickets in tags:
       <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
         <td>$tag.name</td>
         <td style="text-align:center;" nowrap>
@@ -26,6 +26,12 @@ $if members:
         <td style="text-align:center;">
           $if tag.photopath:
                <a href="../photos/$tag.name/index.html">$(photos or 0) Fotos</a>
+          $else:
+               nein
+        </td>
+        <td style="text-align:center;">
+          $if tag.tickets:
+               <a href="tickets/$tag.id/index.html">$(tickets or 0) Karten</a>
           $else:
                nein
         </td>
