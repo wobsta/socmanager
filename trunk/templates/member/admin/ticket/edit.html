@@ -1,0 +1,6 @@
+$def with (form, tag, sold)
+<h1><a href="../../../members.html">Mitgliederverwaltung</a>: <a href="../../index.html">Karten</a>: Kartenzuteilung editieren</h1>
+<form action="edit.html" method="POST">
+<p><input type="image" name="map" src="../../map.png?selected=$form.d.selected&sold=$sold.id" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></p>
+$:form.render()
+</form>

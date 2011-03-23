@@ -1,0 +1,16 @@
+$def with (tag, solds)
+<h1><a href="../../members.html">Mitgliederverwaltung</a>: Karten</h1>
+<p>$tag.description</p>
+<div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
+<h2>Verfügbare Karten</h2>
+<p><img src="map.png" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></p>
+<h2>Zugeteilte Karten</h2>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Name</th><th>Anzahl</th><th>Aktion</th></tr>
+  $for sold in solds:
+    <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+      <td>$sold.name</td>
+      <td>$len(sold.tickets) Karten</td>
+      <td><a href="sold/$sold.id/edit.html">Bearbeiten</a>, <a href="sold/$sold.id/delete.html">Löschen</a></td>
+    </tr>
+</table>

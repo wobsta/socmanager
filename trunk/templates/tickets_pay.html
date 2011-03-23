@@ -1,0 +1,44 @@
+$def with (tag, sold)
+$if sold.gender == 'female':
+    Sehr geehrte Frau $sold.name,
+$else:
+    Sehr geehrter Herr $sold.name,
+
+vielen Dank für Ihre Kartenbestellung für das Konzert des Schwäbischen Oratorienchors:
+
+$tag.ticket_title
+
+$tag.ticket_description
+
+Folgende Karten sind für Sie reserviert:
+
+$for ticket in sold.tickets:
+    - $ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, EUR $ticket.regular)
+
+Bitte überweisen Sie den Gesamtbetrag von EUR $(sum(ticket.regular for ticket in sold.tickets)) auf das Konto
+des Schwäbischen Oratorienchors:
+
+- Kontoinhaber: Schwäbischer Oratorienchor
+- Kontonummer: 30209605
+- Bankleitzahl: 72050101
+- Name der Bank: Kreissparkasse Augsburg
+- Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets))
+- Verwendungszweck: PNR $(sold.id)/$sold.bankcode
+
+Bitte bezahlen Sie die Karten innerhalb von 2 Wochen und auf jeden Fall aber
+vor der Aufführung. Nach Zahlungseingang erhalten Sie ein Abholkennwort per
+E-Mail zugeschickt, mit welchem Sie Ihre bezahlten Karten an der Kasse abholen
+können. Es ist nicht möglich, Karten zu reservieren und erst an der Abendkasse
+zu bezahlen. Reservierungen ohne Zahlungseingang werden vor Ablauf des
+Vorverkaufs storniert.
+
+Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und freuen
+uns darauf, Sie als unsere Gäste begrüßen zu dürfen!
+
+
+André Wobst,
+online-Kartenverkauf des Schwäbischen Oratorienchors
+
+
+PS: Für Rückfragen kontaktieren Sie bitte info@schwaebischer-oratorienchor.de.
+    Sie können beispielsweise einfach auf diese E-Mail antworten.

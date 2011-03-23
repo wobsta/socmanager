@@ -2,6 +2,7 @@ $def with (url, content, member, printview=False)
 $code:
     menu = ("/index.html", "Startseite",
             "/project.html", "Projekte",
+            "/tickets.html", "Karten",
             "/choir.html", "Chor",
             # "/soloist.html", "Solisten",
             "/head.html", "Leitung",
@@ -31,7 +32,9 @@ $if not printview:
     <div id="menu">
       <ul>
         $for menu_url, name in pairwise(menu):
-            $if name == "Mitglieder":
+            $if name == "Karten":
+                <li class="new">
+            $elif name == "Mitglieder":
                 <li class="member">
             $else:
                 <li>

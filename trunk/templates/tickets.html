@@ -1,0 +1,66 @@
+$def with (form, tag, tickets, failed=False)
+<h1>Kartenverkauf</h1>
+<h2>$tag.ticket_title</h2>
+<h3>$tag.ticket_description</h3>
+$if failed:
+    <h1 style="color:#933;">ACHTUNG: Die Buchung konnte leider nicht ausgeführt werden!!!</h1>
+    <p>Bedauerlicherweise konnte Ihre Buchung nicht
+    ausgeführt werden, da die ausgewählten Plätze gerade von jemand anderem
+    gebucht wurden. Ihre Auswahl musste deshalb leider verworfen werden. Bitte
+    entschuldigen Sie die Unannehmlichkeiten und suchen Sie sich neue Plätze
+    aus.</p>
+$else:
+    <p>Auf dieser Seite können Sie Karten für die kommende Aufführung des
+    Schwäbischen Oratorienchors erwerben. Es werden ausschließlich Platzkarten in
+    den Kategorien A, B und C zu €24, €18 und €10 angeboten. Es gibt keine
+    Ermässigungen. Die Plätze der Kategorie C sind Hörerplätze.</p>
+    <p>Wählen Sie im nachfolgenden Plan die Plätze aus, die Sie erwerben wollen.
+    Geben Sie im Formular unterhalb des Plans Ihren Namen und eine E-Mail-Adresse
+    ein und bestätigen Sie Ihre Bestellung. Die Plätze sind dann sofort für Sie
+    reserviert. Sie erhalten eine E-Mail mit einer Kontoverbindung, auf der Sie die
+    Karten bitte innerhalb von 2 Wochen und auf jeden Fall aber vor der Aufführung
+    per Überweisung bezahlen müssen. Nach Zahlungseingang erhalten Sie ein
+    Abholkennwort per E-Mail zugeschickt, mit welchem Sie Ihre bezahlten Karten
+    an der Kasse abholen können.</p>
+    <p>Es ist nicht möglich, Karten zu reservieren und erst an der Abendkasse zu
+    bezahlen. Reservierungen ohne Zahlungseingang werden vor Ablauf des Vorverkaufs
+    storniert.</p>
+    <p>Durch die Zahlung per Überweisung und die Abholung der Karten an der
+    Abendkasse können wir auf jegliche Vorverkaufsgebühren verzichten. Nutzen Sie
+    die Gelegenheit und kaufen Sie Ihre Karten frühzeitig!</p>
+<h2>Sitzplan</h2>
+<p>Die verfügbaren Plätze sind in kräftigen Farben dargestellt, sehr hell
+angedeutet hingegen die Plätze, die bereits vergeben sind. Die verschiedenen
+Preiskategorien sind mit unterschiedlichen Farben entsprechend der Legende
+markiert. Bitte wählen Sie Ihre Plätze, indem Sie auf den Plan klicken.
+Ausgewählte Plätze werden schwarz markiert. Erneutes Anklicken wählt die Plätze
+wieder ab.</p>
+<form action="tickets.html#map" method="POST">
+$if failed:
+    <p><input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></p>
+$else:
+    <p><a name="map"><input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></a></p>
+<h2>Ausgewählte Karten</h2>
+$if tickets:
+    <ul>
+      $for ticket in tickets:
+          <li>$ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, €$ticket.regular)</li>
+    </ul>
+    <p>Gesamtpreis: €$(sum(ticket.regular for ticket in tickets))</p>
+$else:
+    <p>Bisher keine Karten ausgewählt.</p>
+<h2>Persönliche Daten</h2>
+<p>Die nachfolgenden Daten werden benötigt, um Sie hinsichtlich der Überweisung
+und des Abholpassworts zu kontaktieren. Bitte geben Sie deshalb insbesondere
+Ihre E-Mail-Adresse sorgfältig ein. Außerdem haben Sie die Möglichkeit, ein
+Rundschreiben zu bestellen. Wir versenden eine halbjährliche E-Mail jeweils zu
+Beginn des Kartenvorverkaufs für kommende Projekte (selbstverständlich
+ausschließlich für Projekte des Schwäbischen Oratorienchors).
+Zudem befindet sich in jeder so an Sie geschickten E-Mail der Hinweis, wie Sie
+das Rundschreiben wieder abbestellen können.</p>
+<p>Eine weitergehende Nutzung Ihrer Daten findet nicht statt. Der
+<a href="privacy.html">Schutz Ihrer Daten</a> hat für uns höchste Priorität.</p>
+$:form.render()
+</form>
+<p>Für Rückfragen kontaktieren Sie bitte
+<img src="static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;">.</p>
