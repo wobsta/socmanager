@@ -4,7 +4,7 @@ import Image
 from sqlalchemy import and_
 from sqlalchemy.orm import mapper, relation, backref
 
-import tables, strorder, cfg
+import tables, strorder, cfg, passwd
 
 
 class Instance(object):
@@ -60,12 +60,15 @@ class Change(object):
 
 class Tag(object):
 
-    def __init__(self, name, description, visible, photopath, photographer):
+    def __init__(self, name, description, visible, photopath, photographer, onsale, ticket_title, ticket_description):
         self.name = name
         self.description = description
         self.visible = visible
         self.photopath = photopath
         self.photographer = photographer
+        self.onsale = onsale
+        self.ticket_title = ticket_title
+        self.ticket_description = ticket_description
 
 
 class Entrance(object):
@@ -176,6 +179,29 @@ class PhotoLabel(object):
         self.text = text
 
 
+class Ticket(object):
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class Sold(object):
+
+    def __init__(self, **kwargs):
+        self.bankcode = passwd.generate()
+        self.pickupcode = passwd.generate()
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class Coupon(object):
+
+    def __init__(self, amount, tag):
+        self.amount = amount
+        self.tag = tag
+
+
 mapper(Instance, tables.instance_table,
        properties={"members": relation(Member,
                                        backref="instance",
@@ -216,14 +242,22 @@ mapper(Member, tables.member_table,
                                         backref="member",
                                         primaryjoin=and_(tables.member_table.c.id==tables.message_table.c.member_id,
                                                          tables.circular_table.c.id==tables.message_table.c.circular_id),
-                                        order_by=[tables.circular_table.c.instance_order])})
+                                        order_by=[tables.circular_table.c.instance_order]),
+                   "coupons": relation(Coupon,
+                                       backref="member")})
 
 mapper(Change, tables.change_table)
 
 mapper(Tag, tables.tag_table,
        properties={"photos": relation(Photo,
                                       backref="tag",
-                                      order_by=[tables.photo_table.c.name])})
+                                      order_by=[tables.photo_table.c.name]),
+                   "tickets": relation(Ticket,
+                                       backref="tag"),
+                   "solds": relation(Sold,
+                                     backref="tag"),
+                   "coupons": relation(Coupon,
+                                       backref="tag")})
 
 mapper(Entrance, tables.entrance_table,
        properties={"links": relation(Link,
@@ -253,6 +287,15 @@ mapper(Photo, tables.photo_table,
                                       backref="photo")})
 
 mapper(PhotoLabel, tables.photo_label_table)
+
+mapper(Ticket, tables.ticket_table)
+
+mapper(Sold, tables.sold_table,
+       properties={"tickets": relation(Ticket,
+                                       backref="sold",
+                                       order_by=[tables.ticket_table.c.id])})
+
+mapper(Coupon, tables.coupon_table)
 
 
 if __name__ == "__main__":

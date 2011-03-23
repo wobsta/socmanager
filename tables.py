@@ -12,7 +12,8 @@ metadata = MetaData()
 
 instance_table = Table("instance", metadata,
                        Column("id", Integer, primary_key=True),
-                       Column("name", Unicode, unique=True, nullable=False))
+                       Column("name", Unicode, unique=True, nullable=False),
+                       Column("description", Unicode))
 
 member_table = Table("member", metadata,
                      Column("id", Integer, primary_key=True),
@@ -52,6 +53,12 @@ tag_table = Table("tag", metadata,
                   Column("visible", Boolean, nullable=False),
                   Column("photopath", Unicode),
                   Column("photographer", Unicode),
+                  Column("onsale", Boolean),
+                  Column("ticket_title", Unicode),
+                  Column("ticket_description", Unicode),
+                  Column("ticketmap", LargeBinary),
+                  Column("ticketmap_width", Integer),
+                  Column("ticketmap_height", Integer),
                   Column("instance_order", String, nullable=False),
                   Column("instance_id", Integer, ForeignKey("instance.id"), nullable=False),
                   UniqueConstraint("instance_id", "instance_order"))
@@ -131,6 +138,47 @@ photo_label_table = Table("photo_label", metadata,
                     Column("width", Integer, nullable=False),
                     Column("height", Integer, nullable=False),
                     Column("text", Unicode, nullable=False))
+
+ticket_table = Table("ticket", metadata,
+                     Column("id", Integer, primary_key=True),
+                     Column("block", Unicode, nullable=False),
+                     Column("row", Unicode, nullable=False),
+                     Column("seat", Unicode, nullable=False),
+                     Column("cathegory", Unicode, nullable=False),
+                     Column("wheelchair", Unicode, nullable=False),
+                     Column("regular", Integer, nullable=False),
+                     Column("image_light", LargeBinary, nullable=False),
+                     Column("image_strong", LargeBinary, nullable=False),
+                     Column("left", Integer, nullable=False),
+                     Column("right", Integer, nullable=False),
+                     Column("top", Integer, nullable=False),
+                     Column("bottom", Integer, nullable=False),
+                     Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
+                     Column("sold_id", Integer, ForeignKey("sold.id")),
+                     CheckConstraint("wheelchair in ('no', 'possible', 'only', 'used')"),
+                     UniqueConstraint("block", "row", "seat", "tag_id"))
+
+sold_table = Table("sold", metadata,
+                   Column("id", Integer, primary_key=True),
+                   Column("name", Unicode, nullable=False),
+                   Column("email", Unicode),
+                   Column("newsletter", Boolean),
+                   Column("online", Boolean, nullable=False),
+                   Column("bankcode", Unicode),
+                   Column("pickupcode", Unicode),
+                   Column("gender", Unicode, nullable=False),
+                   Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
+                   Column("created", DateTime, default=datetime.datetime.now, nullable=False),
+                   Column("payed", DateTime),
+                   CheckConstraint("gender in ('female', 'male')"))
+
+coupon_table = Table("coupon", metadata,
+                     Column("id", Integer, primary_key=True),
+                     Column("amount", Integer, nullable=False),
+                     Column("code", Unicode, nullable=False),
+                     Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
+                     Column("member_id", Integer, ForeignKey("member.id")),
+                     Column("sold_id", Integer, ForeignKey("sold.id")))
 
 
 if __name__ == "__main__":
