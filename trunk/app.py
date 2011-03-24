@@ -40,7 +40,7 @@ except ImportError:
     import simplejson as json
 import web
 
-from sqlalchemy import create_engine, func, Integer, and_, select
+from sqlalchemy import create_engine, func, Integer, and_, or_, select
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import desc
@@ -77,9 +77,12 @@ urls = ("/login.html$", "login",
         "/member/admin/tag/(\d+)/edit.html$", "member_admin_tag_edit",
         "/member/admin/tag/(\d+)/delete.html$", "member_admin_tag_delete",
         "/member/admin/tickets/(\d+)/index.html$", "member_admin_tickets",
-        "/member/admin/tickets/(\d+)/map.png$", "member_admin_ticketmap",
+        "/member/admin/tickets/(\d+)/map.png$", "member_admin_ticketmappng",
+        "/member/admin/tickets/(\d+)/map.pdf$", "member_admin_ticketmappdf",
         "/member/admin/tickets/(\d+)/new.html$", "member_admin_tickets_new",
         "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
+        "/member/admin/tickets/(\d+)/sold/(\d+)/pay.html$", "member_admin_tickets_pay",
+        "/member/admin/tickets/(\d+)/sold/(\d+)/pickup.html$", "member_admin_tickets_pickup",
         "/member/admin/tickets/(\d+)/sold/(\d+)/delete.html$", "member_admin_tickets_delete",
         "/member/admin/circulars.html$", "member_admin_circulars",
         "/member/admin/circular/copy.html$", "member_admin_circular_copy",
@@ -1098,7 +1101,7 @@ class member_admin_tags(member_admin_work_on_selection):
         all = count_ids_stmt.subquery()
         selected = count_ids_stmt.filter(tables.member_tag_table.c.member_id == func.any([member.id for member in members])).subquery()
         photos = web.ctx.orm.query(orm.Photo.tag_id, func.count().label("count")).group_by(orm.Photo.tag_id).subquery()
-        tickets = web.ctx.orm.query(orm.Ticket.tag_id, func.count().label("count")).group_by(orm.Ticket.tag_id).subquery()
+        tickets = web.ctx.orm.query(orm.Ticket.tag_id, func.count().label("count")).group_by(orm.Ticket.tag_id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')).subquery()
         tags = web.ctx.orm.query(orm.Tag, all.c.count, all.c.ids, selected.c.count, selected.c.ids, photos.c.count, tickets.c.count)\
                           .outerjoin((all, orm.Tag.id == all.c.tag_id))\
                           .outerjoin((selected, orm.Tag.id == selected.c.tag_id))\
@@ -1149,6 +1152,7 @@ class member_admin_tag_form(object):
                              web.form.Checkbox("onsale", description="Kartenverkauf"),
                              web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
                              web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
+                             web.form.Textbox("ticketmap_latexname", description="Karten-Plan (Name der LaTeX class option)", size=50),
                              web.form.Button("Speichern", type="submit"))
 
 
@@ -1171,7 +1175,7 @@ class member_admin_tag_new(member_admin_tag_form):
             if form.validates():
                 web.header("Content-Type", "text/plain; charset=utf-8")
                 web.header("Transfer-Encoding", "chunked")
-                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, web.input().has_key("onsale"), form.d.ticket_title, form.d.ticket_description)
+                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, web.input().has_key("onsale"), form.d.ticket_title, form.d.ticket_description, form.d.ticketmap_latexname)
                 yield "scanning photos…\n"
                 if tag.photopath:
                     for photo in sorted(os.listdir(tag.photopath)):
@@ -1209,6 +1213,7 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.onsale.checked = tag.onsale
         form.ticket_title.value = tag.ticket_title
         form.ticket_description.value = tag.ticket_description
+        form.ticketmap_latexname.value = tag.ticketmap_latexname
         form.pos.value = str(self.instance.tags.index(tag))
         try:
             photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
@@ -1234,6 +1239,7 @@ class member_admin_tag_edit(member_admin_tag_form):
                 tag.onsale = web.input().has_key("onsale")
                 tag.ticket_title = form.d.ticket_title
                 tag.ticket_description = form.d.ticket_description
+                tag.ticketmap_latexname = form.d.ticketmap_latexname
                 instance.tags.remove(tag)
                 instance.insert_tag(int(form.d.pos), tag)
                 photos = dict((photo.name, photo)
@@ -1308,16 +1314,27 @@ def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
     return f
 
 
-class member_admin_tickets():
+class member_admin_tickets(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
-        solds = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).all()
-        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, solds), self.member)
+        total = web.ctx.orm.query(func.count().label("count"),
+                                  func.sum(orm.Ticket.regular).label("sum")).filter(or_(orm.Ticket.sold_id!=None, orm.Ticket.wheelchair != 'only')).first()
+        available = web.ctx.orm.query(func.count().label("count"),
+                                      func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id==None).filter(orm.Ticket.wheelchair != 'only').first()
+        tickets = web.ctx.orm.query(orm.Ticket.sold_id,
+                                    func.count().label("count"),
+                                    func.sum(orm.Ticket.regular).label("sum")).group_by(orm.Ticket.sold_id).subquery()
+        booked = web.ctx.orm.query(orm.Sold, tickets.c.count, tickets.c.sum)\
+                            .join((tickets, orm.Sold.id == tickets.c.sold_id))\
+                            .order_by(orm.Sold.id).all()
+        booked_sum = web.ctx.orm.query(func.count().label("count"),
+                                       func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id!=None).first()
+        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, total, available, booked, booked_sum), self.member)
 
 
-class member_admin_ticketmap():
+class member_admin_ticketmappng(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag):
@@ -1334,6 +1351,64 @@ class member_admin_ticketmap():
         web.header("Content-Type", "image/png")
         web.header("Cache-Control", "no-cache, must-revalidate")
         return f
+
+
+class member_admin_ticketmappdf(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        booked = web.input().get("booked")
+        available = web.input().get("available")
+        sold = web.input().get("sold")
+        if sold:
+            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        try:
+            os.makedirs(cfg.tmppath)
+        except OSError:
+            pass
+        filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
+        f = codecs.open(filename, "w", encoding="utf-8")
+        f.write(u"\\documentclass[%s]{map}\n" % tag.ticketmap_latexname)
+        f.write(u"\\usepackage[utf8]{inputenc}\n")
+        f.write(u"\\begin{document}\n")
+        f.write(u"\\socTitle{%s}{%s}\n" % (tag.ticket_title, tag.ticket_description))
+        for ticket in web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id):
+            if sold:
+                if ticket in sold.tickets:
+                    lum = "strong"
+                elif ticket.wheelchair != 'only' or ticket.sold_id is not None:
+                    lum = "light"
+                else:
+                    lum = None
+            else:
+                if ticket.wheelchair != 'only' or ticket.sold_id is not None:
+                    if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None):
+                        lum = "light"
+                    else:
+                        lum = "strong"
+                elif ticket.wheelchair != 'only':
+                    lum = "light"
+                else:
+                    lum = None
+            if lum:
+                f.write(u"\\socSeat{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, lum))
+        f.write(u"\\socStat\n")
+        f.write(u"\\end{document}\n")
+        f.close()
+        shutil.copy(os.path.join(path, "formats", "map.cls"), cfg.tmppath)
+        shutil.copy(os.path.join(path, "formats", "%s.clo" % tag.ticketmap_latexname), cfg.tmppath)
+        try:
+            os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+        except OSError:
+            pass
+        os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
+        f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
+        pdf = f.read()
+        f.close()
+        web.header("Content-Type", "application/pdf")
+        web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
+        return pdf
 
 
 class member_admin_ticket_form(object):
@@ -1461,6 +1536,71 @@ class member_admin_tickets_delete(object):
         web.ctx.orm.delete(sold)
         raise web.seeother("../../index.html")
 
+
+class member_admin_tickets_pickup(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
+        f = codecs.open(filename, "w", encoding="utf-8")
+        f.write(u"\\documentclass{pickup}\n")
+        f.write(u"\\usepackage[utf8]{inputenc}\n")
+        f.write(u"\\begin{document}\n")
+        sum = 0
+        for ticket in sold.tickets:
+            sum += ticket.regular
+        f.write(u"\\socPickup{%s}{%s}{%s/%s}{%s/%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
+        for ticket in sold.tickets:
+            f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
+        f.write(u"\\end{document}\n")
+        f.close()
+        shutil.copy(os.path.join(path, "formats", "pickup.cls"), cfg.tmppath)
+        try:
+            os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+        except OSError:
+            pass
+        os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
+        f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
+        pdf = f.read()
+        f.close()
+        web.header("Content-Type", "application/pdf")
+        web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
+        return pdf
+
+
+class member_admin_tickets_pay(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        sum = 0
+        for ticket in sold.tickets:
+            sum += ticket.regular
+        return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay(sold, sum), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        sold.payed = datetime.datetime.now()
+        #s = smtplib.SMTP()
+        #s.connect()
+        msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
+        msg["Subject"] = "ABHOLKENNWORT für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+        msg["From"] = cfg.from_email
+        to_emails = sold.email.split(",")
+        msg["To"] = to_emails[0]
+        if len(to_emails) > 1:
+            msg["Cc"] = ",".join(to_emails[1:])
+        msg["Date"] = email.Utils.formatdate(localtime=True)
+        to_emails.append(cfg.from_email)
+        print msg.as_string()
+        #s.sendmail(cfg.from_email, to_emails, msg.as_string())
+        #s.close()
+        raise web.seeother("../../index.html")
 
 # }}} admin tickets
 

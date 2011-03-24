@@ -60,7 +60,7 @@ class Change(object):
 
 class Tag(object):
 
-    def __init__(self, name, description, visible, photopath, photographer, onsale, ticket_title, ticket_description):
+    def __init__(self, name, description, visible, photopath, photographer, onsale, ticket_title, ticket_description, ticket_latexname):
         self.name = name
         self.description = description
         self.visible = visible
@@ -69,6 +69,7 @@ class Tag(object):
         self.onsale = onsale
         self.ticket_title = ticket_title
         self.ticket_description = ticket_description
+        self.ticket_latexname = ticket_latexname
 
 
 class Entrance(object):
