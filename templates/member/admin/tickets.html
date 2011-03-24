@@ -1,16 +1,57 @@
-$def with (tag, solds)
+$def with (tag, total, available, booked, booked_sum)
 <h1><a href="../../members.html">Mitgliederverwaltung</a>: Karten</h1>
 <p>$tag.description</p>
-<div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
-<h2>Verfügbare Karten</h2>
-<p><img src="map.png" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></p>
-<h2>Zugeteilte Karten</h2>
+<h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><th>Name</th><th>Anzahl</th><th>Aktion</th></tr>
-  $for sold in solds:
-    <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
-      <td>$sold.name</td>
-      <td>$len(sold.tickets) Karten</td>
-      <td><a href="sold/$sold.id/edit.html">Bearbeiten</a>, <a href="sold/$sold.id/delete.html">Löschen</a></td>
-    </tr>
+  <tr><td></td><th>Anzahl</th><th>Wert</th></tr>
+  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$booked_sum.count</a></td><td align="right">€$booked_sum.sum</td></tr>
+  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$available.count</a></td><td align="right">€$available.sum</td></tr>
+  <tr><th>Summe</th><td align="right"><a href="map.pdf">$total.count</a></td><td align="right">€$total.sum</td></tr>
+</table>
+<br>
+<h2>Nicht online gekaufte Karten</h2>
+<div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Name</th><th>Anzahl</th><th>Wert</th><th>Aktion</th></tr>
+$for sold, count, sum in booked:
+    $if not sold.online:
+        <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+          <td>$sold.name</td>
+          <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
+          <td align="right">€$sum</td>
+          <td>
+            <a href="sold/$sold.id/edit.html">Bearbeiten</a>,
+            <a href="sold/$sold.id/delete.html">Löschen</a>\
+          </td>
+        </tr>
+</table>
+<br>
+<h2>Online gekaufte Karten</h2>
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Name</th><th>Status</th><th>Anzahl</th><th>Wert</th><th>Zahlung</th><th>Aktion</th></tr>
+$for sold, count, sum in booked:
+    $if sold.online:
+        <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
+          <td>$sold.name</td>
+          <td>
+            $if sold.payed:
+                bezahlt
+            $else:
+                reserviert unter $sold.id/$sold.bankcode
+          </td>
+          <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
+          <td align="right">€$sum</td>
+          <td>
+            $if sold.payed:
+                gebucht
+            $else:
+                <a href="sold/$sold.id/pay.html">buchen</a>
+          </td>
+          <td>
+            <a href="sold/$sold.id/pickup.html">Abholschein</a>,
+            <a href="sold/$sold.id/edit.html">Bearbeiten</a>,
+            <a href="sold/$sold.id/delete.html">Löschen</a>\
+        $if sold.online and not sold.payed:
+          </td>
+        </tr>
 </table>

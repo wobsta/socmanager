@@ -59,6 +59,7 @@ tag_table = Table("tag", metadata,
                   Column("ticketmap", LargeBinary),
                   Column("ticketmap_width", Integer),
                   Column("ticketmap_height", Integer),
+                  Column("ticketmap_latexname", Unicode),
                   Column("instance_order", String, nullable=False),
                   Column("instance_id", Integer, ForeignKey("instance.id"), nullable=False),
                   UniqueConstraint("instance_id", "instance_order"))
