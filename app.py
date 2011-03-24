@@ -1586,10 +1586,10 @@ class member_admin_tickets_pay(object):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         sold.payed = datetime.datetime.now()
-        #s = smtplib.SMTP()
-        #s.connect()
+        s = smtplib.SMTP()
+        s.connect()
         msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
-        msg["Subject"] = "ABHOLKENNWORT für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+        msg["Subject"] = "Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
         msg["To"] = to_emails[0]
@@ -1597,9 +1597,8 @@ class member_admin_tickets_pay(object):
             msg["Cc"] = ",".join(to_emails[1:])
         msg["Date"] = email.Utils.formatdate(localtime=True)
         to_emails.append(cfg.from_email)
-        print msg.as_string()
-        #s.sendmail(cfg.from_email, to_emails, msg.as_string())
-        #s.close()
+        s.sendmail(cfg.from_email, to_emails, msg.as_string())
+        s.close()
         raise web.seeother("../../index.html")
 
 # }}} admin tickets
