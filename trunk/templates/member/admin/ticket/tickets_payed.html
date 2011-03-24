@@ -1,0 +1,36 @@
+$def with (tag, sold)
+$if sold.gender == 'female':
+    Sehr geehrte Frau $sold.name\
+$else:
+    Sehr geehrter Herr $sold.name\
+,
+
+============================================================================
+
+*WICHTIG*! Bitte notieren Sie sich folgendes Abholkennwort (oder bringen Sie
+am besten einen Ausdruck der E-Mail an die Abendkasse): $sold.id/$sold.pickupcode
+
+============================================================================
+
+Vielen Dank für Ihren Kartenkauf für das Konzert des Schwäbischen
+Oratorienchors. Wir haben Ihre Zahlung erhalten.
+
+$tag.ticket_title
+
+$tag.ticket_description
+
+Folgende Karten liegen für Sie zur Abholung an der Abendkasse bereit:
+
+$for ticket in sold.tickets:
+    - $ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, EUR $ticket.regular)
+
+Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und freuen
+uns darauf, Sie als unsere Gäste begrüßen zu dürfen!
+
+
+André Wobst,
+online-Kartenverkauf des Schwäbischen Oratorienchors
+
+
+PS: Für Rückfragen kontaktieren Sie bitte info@schwaebischer-oratorienchor.de.
+    Sie können beispielsweise einfach auf diese E-Mail antworten.
