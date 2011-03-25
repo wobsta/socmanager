@@ -280,7 +280,7 @@ class ticket_form(object):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
-                             web.form.Checkbox("newsletter", description="Rundschreiben"),
+                             web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              web.form.Hidden("selected"),
                              web.form.Button("Karten verbindlich kaufen", type="submit"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
@@ -674,7 +674,7 @@ class member_admin_members(member_admin_work_on_selection):
         self.instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         return web.form.Form(web.form.Dropdown("withorwithout", [("with", "mit"), ("without", "ohne")]),
                              web.form.Dropdown("tag", [tag.name for tag in self.instance.tags]),
-                             *[web.form.Checkbox(name="member_%i" % member.id) for member in self.instance.members])
+                             *[web.form.Checkbox(name="member_%i" % member.id, value="yes") for member in self.instance.members])
 
     @with_member_auth(admin_only=True)
     def GET(self):
@@ -1145,11 +1145,11 @@ class member_admin_tag_form(object):
                                                       [(str(i+1), "nach %s" % tag.name)
                                                        for i, tag in enumerate(tags)], description="Position in der Liste"),
                              web.form.Textbox("description", description="Beschreibung", size=50),
-                             web.form.Checkbox("visible", description="sichtbar"),
+                             web.form.Checkbox("visible", description="sichtbar", value="yes"),
                              web.form.Textbox("photopath", description="Foto-Verzeichnis", size=50),
                              web.form.Textbox("photographer", description="Fotograf", size=50),
                              web.form.Textbox("labeledphotos", description="beschriftbare Fotos", size=50),
-                             web.form.Checkbox("onsale", description="Kartenverkauf"),
+                             web.form.Checkbox("onsale", description="Kartenverkauf", value="yes"),
                              web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
                              web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
                              web.form.Textbox("ticketmap_latexname", description="Karten-Plan (Name der LaTeX class option)", size=50),
@@ -1417,8 +1417,8 @@ class member_admin_ticket_form(object):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Name", size=50),
                              web.form.Textbox("email", description="E-Mail", size=50),
-                             web.form.Checkbox("newsletter", description="Rundschreiben"),
-                             web.form.Checkbox("online", description="online-Bestellung"),
+                             web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
+                             web.form.Checkbox("online", description="online-Bestellung", value="yes"),
                              web.form.Hidden("selected"),
                              web.form.Button("Speichern", type="submit"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
