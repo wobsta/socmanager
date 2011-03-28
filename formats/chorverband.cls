@@ -14,8 +14,8 @@
 \fancyfoot[C]{\thepage}
 \fancyfoot[R]{http://www.schwaebischer-oratorienchor.de/}
 \raggedbottom
-\setlength{\parindent}{0mm}
-\setlength{\parskip}{3mm}
+\setlength\parindent{0mm}
+\setlength\parskip{3mm}
 \newcounter{memberCount}
 \newenvironment{members}{}{}
 \newenvironment{memberGroup}{}{}

@@ -37,6 +37,11 @@ attachments = [Storage(type="PDF Dokument", mime="application/pdf", icon="pdf.pn
                Storage(type="PNG Bild", mime="image/png", icon="png.png")]
 mid_size = 750
 thumb_size = 150
+mapformats = [Storage(name="map", description=u"Sitzplan (pdf)", cls="map.cls", order=1),
+              Storage(name="sepatator", description=u"Trennblätter für Kartenverkauf (pdf)", cls="separator.cls", order=1),
+              Storage(name="seats1", description=u"Platzschilder fortlaufend (pdf)", cls="seat.cls", order=1),
+              Storage(name="seats2", description=u"Platzschilder hintereinander (pdf)", cls="seat.cls", order=24),
+              Storage(name="rows", description=u"Reihenschilder (pdf)", cls="row.cls", order=1)]
 
 try:
     from secrets import *

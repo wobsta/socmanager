@@ -1,0 +1,47 @@
+\DeclareOption*{\input{\CurrentOption.clo}}
+\ProcessOptions\relax
+\renewcommand{\normalsize}{\fontsize{7pt}{7pt}\selectfont}
+\renewcommand{\familydefault}{\sfdefault}
+\RequirePackage{ifthen,graphicx,xstring,type1cm}
+\RequirePackage[a4paper]{geometry}
+\geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
+\setlength\unitlength{1cm}
+\setlength\parindent{0pt}
+\setlength\lineskip{0pt}
+\gdef\lastSeatRow{}
+\newcounter{seatCounter}
+\newcounter{lastSeatCounter}
+\newcommand\socSeat[5]{%
+  \IfInteger{#3}{%
+    \setcounter{seatCounter}{#3}%
+  }{}%
+  \ifthenelse{\equal{#2}{\lastSeatRow}\AND\value{seatCounter}=\value{lastSeatCounter}}{}{%
+    \begin{picture}(10.5,7.425)
+    \put(0,0){\line(1,0){10.5}}
+    \put(0,0){\line(0,1){7.425}}
+    \put(0,7.425){\line(1,0){10.5}}
+    \put(10.5,0){\line(0,1){7.425}}
+    \put(2,3.7125){\rotatebox[origin=cB]{90}{\fontsize{20}{20}\selectfont\textbf{#1}}}
+    \put(4,3.7125){\rotatebox[origin=cB]{90}{\fontsize{30}{30}\selectfont\textbf{Reihe}}}
+    \put(6,3.7125){\rotatebox[origin=cB]{90}{\fontsize{100}{100}\selectfont\textbf{#2}}}
+    \end{picture}%
+    \hspace{0pt plus 1pt}%
+    \begin{picture}(10.5,7.425)
+    \put(0,0){\line(1,0){10.5}}
+    \put(0,0){\line(0,1){7.425}}
+    \put(0,7.425){\line(1,0){10.5}}
+    \put(10.5,0){\line(0,1){7.425}}
+    \put(2,3.7125){\rotatebox[origin=cB]{90}{\fontsize{20}{20}\selectfont\textbf{#1}}}
+    \put(4,3.7125){\rotatebox[origin=cB]{90}{\fontsize{30}{30}\selectfont\textbf{Reihe}}}
+    \put(6,3.7125){\rotatebox[origin=cB]{90}{\fontsize{100}{100}\selectfont\textbf{#2}}}
+    \end{picture}%
+    \hspace{0pt plus 1pt}%
+  }%
+  \gdef\lastSeatRow{#2}%
+  \IfInteger{#3}{%
+    \setcounter{lastSeatCounter}{#3}%
+    \stepcounter{lastSeatCounter}%
+  }{}%
+}
+\newcommand\socTitle[2]{}
+\newcommand\socStat{}

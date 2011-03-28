@@ -1314,25 +1314,81 @@ def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
     return f
 
 
+MapPrintForm = web.form.Form(web.form.Dropdown("mapformat", [(mapformat.name, mapformat.description)
+                                                             for mapformat in cfg.mapformats], description="Format"),
+                             web.form.Button("Erzeugen", type="submit"))
+
 class member_admin_tickets(object):
 
-    @with_member_auth(admin_only=True)
-    def GET(self, tag):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
-        total = web.ctx.orm.query(func.count().label("count"),
+    def populate(self, tag):
+        self.form = MapPrintForm()
+        self.tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        self.total = web.ctx.orm.query(func.count().label("count"),
                                   func.sum(orm.Ticket.regular).label("sum")).filter(or_(orm.Ticket.sold_id!=None, orm.Ticket.wheelchair != 'only')).first()
-        available = web.ctx.orm.query(func.count().label("count"),
+        self.available = web.ctx.orm.query(func.count().label("count"),
                                       func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id==None).filter(orm.Ticket.wheelchair != 'only').first()
         tickets = web.ctx.orm.query(orm.Ticket.sold_id,
                                     func.count().label("count"),
                                     func.sum(orm.Ticket.regular).label("sum")).group_by(orm.Ticket.sold_id).subquery()
-        booked = web.ctx.orm.query(orm.Sold, tickets.c.count, tickets.c.sum)\
-                            .join((tickets, orm.Sold.id == tickets.c.sold_id))\
-                            .order_by(orm.Sold.id).all()
-        booked_sum = web.ctx.orm.query(func.count().label("count"),
+        self.booked = web.ctx.orm.query(orm.Sold, tickets.c.count, tickets.c.sum)\
+                                 .join((tickets, orm.Sold.id == tickets.c.sold_id))\
+                                 .order_by(orm.Sold.id).all()
+        self.booked_sum = web.ctx.orm.query(func.count().label("count"),
                                        func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id!=None).first()
-        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, total, available, booked, booked_sum), self.member)
 
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        self.populate(tag)
+        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(self), self.member)
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag):
+        self.populate(tag)
+        if self.form.validates():
+            mapformat, = [mapformat for mapformat in cfg.mapformats if mapformat.name == self.form.d.mapformat]
+
+            tickets = list(web.ctx.orm.query(orm.Ticket).filter_by(tag_id=self.tag.id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')).order_by(orm.Ticket.id))
+            full_sheets, on_last_page = divmod(len(tickets), mapformat.order)
+            sheet = pos = 0
+            for ticket in tickets:
+                ticket.sheet = sheet
+                if sheet == full_sheets or (sheet == full_sheets - 1 and pos >= on_last_page > 0):
+                    sheet = 0
+                    pos += 1
+                else:
+                    sheet += 1
+            tickets.sort(key=lambda ticket: ticket.sheet)
+
+            try:
+                os.makedirs(cfg.tmppath)
+            except OSError:
+                pass
+            filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
+            f = codecs.open(filename, "w", encoding="utf-8")
+            f.write(u"\\documentclass[%s]{%s}\n" % (self.tag.ticketmap_latexname, mapformat.cls.split(".")[0]))
+            f.write(u"\\usepackage[utf8]{inputenc}\n")
+            f.write(u"\\begin{document}%\n")
+            f.write(u"\\socTitle{%s}{%s}%%\n" % (self.tag.ticket_title, self.tag.ticket_description))
+            for ticket in tickets:
+                f.write(u"\\socSeat{%s}{%s}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory))
+            f.write(u"\\socStat%\n")
+            f.write(u"\\end{document}\n")
+            f.close()
+            shutil.copy(os.path.join(path, "formats", mapformat.cls), cfg.tmppath)
+            shutil.copy(os.path.join(path, "formats", "%s.clo" % self.tag.ticketmap_latexname), cfg.tmppath)
+            try:
+                os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+            except OSError:
+                pass
+            os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
+            f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
+            pdf = f.read()
+            f.close()
+            web.header("Content-Type", "application/pdf")
+            web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
+            return pdf
+        else:
+            return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, total, available, booked, booked_sum), self.member)
 
 class member_admin_ticketmappng(object):
 
@@ -1372,7 +1428,7 @@ class member_admin_ticketmappdf(object):
         f.write(u"\\documentclass[%s]{map}\n" % tag.ticketmap_latexname)
         f.write(u"\\usepackage[utf8]{inputenc}\n")
         f.write(u"\\begin{document}\n")
-        f.write(u"\\socTitle{%s}{%s}\n" % (tag.ticket_title, tag.ticket_description))
+        f.write(u"\\socTitle{%s}{%s}%%\n" % (tag.ticket_title, tag.ticket_description))
         tickets = []
         for ticket in web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id):
             if sold:
@@ -1397,7 +1453,7 @@ class member_admin_ticketmappdf(object):
         tickets.sort(key=lambda ticket: ticket.lum)
         for ticket in tickets:
             f.write(u"\\socSeat{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.lum))
-        f.write(u"\\socStat\n")
+        f.write(u"\\socStat%\n")
         f.write(u"\\end{document}\n")
         f.close()
         shutil.copy(os.path.join(path, "formats", "map.cls"), cfg.tmppath)
@@ -1554,6 +1610,7 @@ class member_admin_tickets_pickup(object):
         f = codecs.open(filename, "w", encoding="utf-8")
         f.write(u"\\documentclass{pickup}\n")
         f.write(u"\\usepackage[utf8]{inputenc}\n")
+        f.write(u"\\usepackage[T1]{fontenc}\n")
         f.write(u"\\begin{document}\n")
         sum = 0
         for ticket in sold.tickets:
