@@ -1,19 +1,19 @@
-$def with (tag, total, available, booked, booked_sum)
+$def with (view)
 <h1><a href="../../members.html">Mitgliederverwaltung</a>: Karten</h1>
-<p>$tag.description</p>
+<p>$view.tag.description</p>
 <h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><td></td><th>Anzahl</th><th>Wert</th></tr>
-  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$booked_sum.count</a></td><td align="right">€$booked_sum.sum</td></tr>
-  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$available.count</a></td><td align="right">€$available.sum</td></tr>
-  <tr><th>Summe</th><td align="right"><a href="map.pdf">$total.count</a></td><td align="right">€$total.sum</td></tr>
+  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$view.booked_sum.count</a></td><td align="right">€$view.booked_sum.sum</td></tr>
+  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$view.available.sum</td></tr>
+  <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$view.total.sum</td></tr>
 </table>
 <br>
 <h2>Nicht online gekaufte Karten</h2>
 <div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><th>Name</th><th>Anzahl</th><th>Wert</th><th>Aktion</th></tr>
-$for sold, count, sum in booked:
+$for sold, count, sum in view.booked:
     $if not sold.online:
         <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
           <td>$sold.name</td>
@@ -29,7 +29,7 @@ $for sold, count, sum in booked:
 <h2>Online gekaufte Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><th>Name</th><th>Status</th><th>Anzahl</th><th>Wert</th><th>Zahlung</th><th>Aktion</th></tr>
-$for sold, count, sum in booked:
+$for sold, count, sum in view.booked:
     $if sold.online:
         <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
           <td>$sold.name</td>
@@ -55,3 +55,8 @@ $for sold, count, sum in booked:
           </td>
         </tr>
 </table>
+<br>
+<h2>Druckvorlagen</h2>
+<form action="index.html" method="POST">
+$:view.form.render()
+</form>

@@ -5,7 +5,7 @@
 \RequirePackage[a4paper]{geometry}
 \geometry{top=1cm,bottom=1cm,outer=0mm,left=1cm,right=1cm,nofoot,nohead,includeheadfoot}
 \AddToShipoutPicture{
-  \setlength{\unitlength}{1cm}%
+  \setlength\unitlength{1cm}%
   \put(0,8.5){\line(1,0){21}}
   \put(0,17.5){\line(1,0){21}}
 }

@@ -1,0 +1,40 @@
+\DeclareOption*{\input{\CurrentOption.clo}}
+\ProcessOptions\relax
+\renewcommand{\normalsize}{\fontsize{10}{10}\selectfont}
+\pagenumbering{arabic}
+\setlength\textwidth{6.5in}
+\setlength\textheight{8in}
+\renewcommand{\familydefault}{\sfdefault}
+\RequirePackage{ifthen,type1cm}
+\RequirePackage[paperwidth=200mm,paperheight=240mm]{geometry}
+\geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
+\RequirePackage[cam,a4,center]{crop}
+\setlength\unitlength{1cm}
+\setlength\parindent{0pt}
+\setlength\lineskip{0pt}
+\gdef\lastSeatBlock{}
+\gdef\lastSeatRow{}
+\newcounter{blockCounter}
+\definecolor{c1}{cmyk}{0,0.3,0.3,0}
+\definecolor{c2}{cmyk}{0.3,0,0.3,0}
+\definecolor{c3}{cmyk}{0.3,0.3,0,0}
+\definecolor{c4}{cmyk}{0,0.3,0,0}
+\definecolor{c5}{cmyk}{0.3,0,0,0}
+\newcommand\socSeat[5]{%
+  \ifthenelse{\equal{#1}{\lastSeatBlock}}{}{\stepcounter{blockCounter}}%
+  \ifthenelse{\equal{#2}{\lastSeatRow}}{}{%
+    \begin{picture}(10,8)
+    \put(0,6.5){\textcolor{c\arabic{blockCounter}}{\rule{10cm}{1.5cm}}}
+    \put(0,0){\line(1,0){10}}
+    \put(0,0){\line(0,1){8}}
+    \put(0,8){\line(1,0){10}}
+    \put(10,0){\line(0,1){8}}
+    \put(1,7.3){\fontsize{14}{14}\selectfont\textbf{#1, Reihe #2}}
+    \end{picture}%
+    \hspace{0pt plus 1pt}%
+  }%
+  \gdef\lastSeatBlock{#1}%
+  \gdef\lastSeatRow{#2}%
+}
+\newcommand\socTitle[2]{}
+\newcommand\socStat{}

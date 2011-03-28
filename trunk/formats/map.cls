@@ -5,7 +5,7 @@
 \RequirePackage{ifthen,graphicx,color,type1cm}
 \RequirePackage[a4paper]{geometry}
 \geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
-\setlength{\unitlength}{1cm}
+\setlength\unitlength{1cm}
 \newcounter{count@A}
 \newcounter{count@B}
 \newcounter{count@C}
