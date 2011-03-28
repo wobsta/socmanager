@@ -1373,26 +1373,30 @@ class member_admin_ticketmappdf(object):
         f.write(u"\\usepackage[utf8]{inputenc}\n")
         f.write(u"\\begin{document}\n")
         f.write(u"\\socTitle{%s}{%s}\n" % (tag.ticket_title, tag.ticket_description))
+        tickets = []
         for ticket in web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id):
             if sold:
                 if ticket in sold.tickets:
-                    lum = "strong"
+                    ticket.lum = "strong"
                 elif ticket.wheelchair != 'only' or ticket.sold_id is not None:
-                    lum = "light"
+                    ticket.lum = "light"
                 else:
-                    lum = None
+                    ticket.lum = None
             else:
                 if ticket.wheelchair != 'only' or ticket.sold_id is not None:
                     if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None):
-                        lum = "light"
+                        ticket.lum = "light"
                     else:
-                        lum = "strong"
+                        ticket.lum = "strong"
                 elif ticket.wheelchair != 'only':
-                    lum = "light"
+                    ticket.lum = "light"
                 else:
-                    lum = None
-            if lum:
-                f.write(u"\\socSeat{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, lum))
+                    ticket.lum = None
+            if ticket.lum:
+                tickets.append(ticket)
+        tickets.sort(key=lambda ticket: ticket.lum)
+        for ticket in tickets:
+            f.write(u"\\socSeat{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.lum))
         f.write(u"\\socStat\n")
         f.write(u"\\end{document}\n")
         f.close()
@@ -1444,7 +1448,10 @@ class member_admin_tickets_new(member_admin_ticket_form):
             y = int(y)
             clicked = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if form.validates() and x is None and y is None:
-            web.ctx.orm.add(orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=web.input().has_key("online"), tag=tag))
+            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=web.input().has_key("online"), tag=tag)
+            for ticket_id in set(map(int, form.d.selected.split(","))):
+                web.ctx.orm.query(orm.Ticket).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
+                web.ctx.orm.commit()
             raise web.seeother("index.html")
         else:
             if form.d.selected:
