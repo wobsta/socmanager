@@ -1339,7 +1339,7 @@ class member_admin_tickets(object):
     @with_member_auth(admin_only=True)
     def GET(self, tag):
         self.populate(tag)
-        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(self), self.member)
+        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(self, pickup=web.input().get("pickup")), self.member)
 
     @with_member_auth(admin_only=True)
     def POST(self, tag):
@@ -1663,7 +1663,7 @@ class member_admin_tickets_pay(object):
         to_emails.append(cfg.from_email)
         s.sendmail(cfg.from_email, to_emails, msg.as_string())
         s.close()
-        raise web.seeother("../../index.html")
+        raise web.seeother("../../index.html?pickup=%d" % sold.id)
 
 # }}} admin tickets
 
