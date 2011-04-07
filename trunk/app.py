@@ -1049,7 +1049,6 @@ class member_admin_print(member_admin_work_on_selection):
                 f = codecs.open(filename, "w", encoding="utf-8")
                 f.write(u"\\documentclass{%s}\n" % format.cls.split(".")[0])
                 f.write(u"\\usepackage[utf8]{inputenc}\n")
-                f.write(u"\\usepackage[T1]{fontenc}\n")
                 f.write(u"\\datetime{%s}\n" % datetime.datetime.now().strftime("%d.%m.%Y, %H:%M"))
                 f.write(u"\\info{%s}\n" % TeX_escape(form.d.description))
                 f.write(u"\\begin{document}\n")
@@ -1610,7 +1609,6 @@ class member_admin_tickets_pickup(object):
         f = codecs.open(filename, "w", encoding="utf-8")
         f.write(u"\\documentclass{pickup}\n")
         f.write(u"\\usepackage[utf8]{inputenc}\n")
-        f.write(u"\\usepackage[T1]{fontenc}\n")
         f.write(u"\\begin{document}\n")
         sum = 0
         for ticket in sold.tickets:
