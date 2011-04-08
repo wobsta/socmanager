@@ -1,5 +1,5 @@
 $def with (view, pickup=None)
-<h1><a href="../../members.html">Mitgliederverwaltung</a>: Karten</h1>
+<h1><a href="../../members.html">Chorverwaltung</a>: Karten</h1>
 <p>$view.tag.description</p>
 <h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
@@ -27,6 +27,21 @@ $for sold, count, s in view.booked:
 </table>
 <br>
 <h2>Online gekaufte Karten</h2>
+<form method="POST" action="index.html">
+  <p>
+    Online-Verkauf ist
+$if view.instance.onsale == view.tag:
+    <b>aktiv</b>, <input type="submit" name="action_deactivate" value="deaktivieren">.
+    $if view.instance.sale_temporarily_closed:
+        Der Verkauf ist vorübergehend geschlossen wegen Vorverkauf im Chor,
+        <input type="submit" name="action_open" value="Verkauf wieder öffnen">.
+    $else:
+        Der Verkauf ist geöffnet,
+        <input type="submit" name="action_close" value="Verkauf vorübergehend schließen"> (wegen Vorverkauf bei der Chorprobe).
+$else:
+    <b>nicht aktiv</b>, <input type="submit" name="action_activate" value="aktivieren">.
+  </p>
+</form>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><th>Name</th><th>Reservierung</th><th>Bezahlung</th><th>Anzahl</th><th>Wert</th><th>Aktion</th></tr>
 $for sold, count, s in view.booked:

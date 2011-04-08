@@ -53,6 +53,7 @@ urls = ("/login.html$", "login",
         "/tickets.html$", "tickets",
         "/tickets.png$", "ticketsmap",
         "/tickets_ok.html$", "tickets_ok",
+        "/newsletter.html$", "newsletter",
         "(/press|/member|/member/photos)$", "add_slash",
         "/member/(index.html|tags.html|privacy.html)?$", "member",
         "/member/data.html$", "member_data",
@@ -259,7 +260,9 @@ class pages(object):
 class ticketsmap(object):
 
     def GET(self):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
+        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        if not instance.onsale:
+            raise web.NotFound()
         selected = web.input().get("selected")
         if selected:
             selected = map(int, selected.split(','))
@@ -267,8 +270,8 @@ class ticketsmap(object):
             selected = []
         sold = web.input().get("sold")
         if sold:
-            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
-        f = ticketmap(tag, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
+            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=instance.onsale.id).one()
+        f = ticketmap(instance.onsale, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
         web.header("Content-Type", "image/png")
         web.header("Cache-Control", "no-cache, must-revalidate")
         return f
@@ -276,7 +279,7 @@ class ticketsmap(object):
 
 class ticket_form(object):
 
-    def form(self):
+    def ticket_form(self):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
@@ -285,46 +288,60 @@ class ticket_form(object):
                              web.form.Button("Karten verbindlich kaufen", type="submit"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
 
+    def newsletter_form(self):
+        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
+                             web.form.Textbox("name", notnull, description=u"Nachname", size=50),
+                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
+                             web.form.Button("Rundschreiben abonnieren", type="submit"),
+                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
 
 class tickets(ticket_form):
 
     @with_member_info
     def GET(self):
-        form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
-        if not tag:
+        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        if not instance.onsale:
+            newsletter_form = self.newsletter_form()
+            return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member)
+        if instance.sale_temporarily_closed:
             return render.page("/tickets_closed.html", render.tickets_closed(), self.member)
-        return render.page("/tickets.html", render.tickets(form, tag, []), self.member)
+        ticket_form = self.ticket_form()
+        return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member)
 
     @with_member_info
     def POST(self):
-        form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(onsale=True).join(orm.Instance).filter_by(name=cfg.instance).first()
-        if not tag:
+        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        if not instance.onsale:
+            newsletter_form = self.newsletter_form()
+            return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member)
+        if instance.sale_temporarily_closed:
             return render.page("/tickets_closed.html", render.tickets_closed(), self.member)
+        ticket_form = self.ticket_form()
         x = web.input().get("map.x")
         y = web.input().get("map.y")
         clicked = None
         if x and y:
             x = int(x)
             y = int(y)
-            clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
-        if form.validates() and x is None and y is None and form.d.selected:
-            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=True, tag=tag)
+            clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
+        if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
+            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, tag=instance.onsale)
+            if web.input().has_key("newsletter"):
+                orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
             web.ctx.orm.add(sold)
             web.ctx.orm.commit()
-            selected = map(int, form.d.selected.split(","))
+            selected = map(int, ticket_form.d.selected.split(","))
             for ticket_id in selected:
-                web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
+                web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
                 web.ctx.orm.commit()
-                if not web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=int(ticket_id)).filter_by(sold_id=sold.id).first():
+                if not web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter_by(id=int(ticket_id)).filter_by(sold_id=sold.id).first():
                     web.ctx.orm.query(orm.Ticket).filter_by(sold_id=sold.id).update({"sold_id": None})
                     web.ctx.orm.delete(sold)
-                    form.selected.value = ""
-                    return render.page("/tickets.html", render.tickets(form, tag, [], failed=True), self.member)
+                    ticket_form.selected.value = ""
+                    return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, [], failed=True), self.member)
             s = smtplib.SMTP()
             s.connect()
-            msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(tag, sold)).encode("utf-8"), _charset="utf-8")
+            msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
             msg["Subject"] = "Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             to_emails = sold.email.split(",")
@@ -337,8 +354,8 @@ class tickets(ticket_form):
             s.close()
             raise web.seeother("tickets_ok.html?id=%s&code=%s" % (sold.id, sold.bankcode))
         else:
-            if form.d.selected:
-                selected = set(map(int, form.d.selected.split(",")))
+            if ticket_form.d.selected:
+                selected = set(map(int, ticket_form.d.selected.split(",")))
             else:
                 selected = set()
             if clicked:
@@ -348,10 +365,10 @@ class tickets(ticket_form):
                     selected.add(clicked.id)
             selected = list(selected)
             selected.sort()
-            tickets = [web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter_by(id=ticket_id).first()
+            tickets = [web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter_by(id=ticket_id).first()
                        for ticket_id in selected]
-            form.selected.value = ",".join(map(str, selected))
-            return render.page("/tickets.html", render.tickets(form, tag, tickets), self.member)
+            ticket_form.selected.value = ",".join(map(str, selected))
+            return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, tickets), self.member)
 
 
 class tickets_ok(object):
@@ -360,10 +377,26 @@ class tickets_ok(object):
     def GET(self):
         id = int(web.input().get("id"))
         code = web.input().get("code")
-        tag = web.ctx.orm.query(orm.Tag).join(orm.Instance).filter_by(name=cfg.instance).first()
+        tag = web.ctx.orm.query(orm.Tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).first()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=id, bankcode=code).first()
         return render.page("/tickets_ok.html", render.tickets_ok(tag, sold), self.member)
 
+
+class newsletter(ticket_form):
+
+    @with_member_info
+    def GET(self):
+        newsletter_form = self.newsletter_form()
+        return render.page("/newsletter.html", render.newsletter(newsletter_form), self.member)
+
+    @with_member_info
+    def POST(self):
+        newsletter_form = self.newsletter_form()
+        if newsletter_form.validates():
+            instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+            orm.Newsletter(newsletter_form.d.gender, newsletter_form.d.name, newsletter_form.d.email, instance)
+            return render.page("/newsletter_ok.html", render.newsletter_ok(), self.member)
+        return render.page("/newsletter.html", render.newsletter(newsletter_form), self.member)
 # }}} public
 
 # {{{ member
@@ -557,6 +590,7 @@ class member_photos(object):
         tags = web.ctx.orm.query(orm.Tag, count.c.count, labeled.c.count, labeled.c.names)\
                           .join((count, orm.Tag.id == count.c.tag_id))\
                           .outerjoin((labeled, orm.Tag.id == labeled.c.tag_id))\
+                          .join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance)\
                           .order_by([desc(orm.Tag.instance_order)]).all()
         return render.page("/member/photos.html", render.member.photos(tags), self.member)
 
@@ -570,7 +604,7 @@ class member_photos_album(object):
             photo = web.ctx.orm.query(orm.Photo).filter_by(name=photo).join(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
             return render.page("/member/photos/X/index.html", render.member.photo(photo), self.member)
         else:
-            tag = web.ctx.orm.query(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
+            tag = web.ctx.orm.query(orm.Tag).filter_by(name=tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
             page = int(web.input().get("page", "1"))
             return render.page("/member/photos/X/index.html", render.member.album(tag, page), self.member)
 
@@ -728,7 +762,7 @@ class member_admin_members(member_admin_work_on_selection):
 def get_tags(i, get_list=False):
     if not get_list and not i.tags.split(): # hackish: test for empty/whitespace string
         return True
-    return [web.ctx.orm.query(orm.Tag).filter_by(name=tag).join(orm.Instance).filter_by(name=cfg.instance).one()
+    return [web.ctx.orm.query(orm.Tag).filter_by(name=tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
             for tag in i.tags.split()]
 
 
@@ -1106,6 +1140,7 @@ class member_admin_tags(member_admin_work_on_selection):
                           .outerjoin((selected, orm.Tag.id == selected.c.tag_id))\
                           .outerjoin((photos, orm.Tag.id == photos.c.tag_id))\
                           .outerjoin((tickets, orm.Tag.id == tickets.c.tag_id))\
+                          .join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance)\
                           .order_by(orm.Tag.instance_order).all()
         return render.page("/member/admin/tags.html", render.member.admin.tags(tags, members), self.member)
 
@@ -1113,7 +1148,7 @@ class member_admin_tags(member_admin_work_on_selection):
     def POST(self):
         action, = [key for key in web.input().keys() if key != "selection"]
         action, tag = action.split("_")
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         members = self.members()
         if action == "add":
             for member in members:
@@ -1148,7 +1183,6 @@ class member_admin_tag_form(object):
                              web.form.Textbox("photopath", description="Foto-Verzeichnis", size=50),
                              web.form.Textbox("photographer", description="Fotograf", size=50),
                              web.form.Textbox("labeledphotos", description="beschriftbare Fotos", size=50),
-                             web.form.Checkbox("onsale", description="Kartenverkauf", value="yes"),
                              web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
                              web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
                              web.form.Textbox("ticketmap_latexname", description="Karten-Plan (Name der LaTeX class option)", size=50),
@@ -1174,7 +1208,7 @@ class member_admin_tag_new(member_admin_tag_form):
             if form.validates():
                 web.header("Content-Type", "text/plain; charset=utf-8")
                 web.header("Transfer-Encoding", "chunked")
-                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, web.input().has_key("onsale"), form.d.ticket_title, form.d.ticket_description, form.d.ticketmap_latexname)
+                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, form.d.ticket_title, form.d.ticket_description, form.d.ticketmap_latexname)
                 yield "scanning photos…\n"
                 if tag.photopath:
                     for photo in sorted(os.listdir(tag.photopath)):
@@ -1201,7 +1235,7 @@ class member_admin_tag_edit(member_admin_tag_form):
 
     @with_member_auth(admin_only=True)
     def GET(self, id):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         form = self.form(skip_tag=tag)
         form.name.value = tag.name
         form.description.value = tag.description
@@ -1209,7 +1243,6 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.photopath.value = tag.photopath
         form.photographer.value = tag.photographer
         form.labeledphotos.value = " ".join(photo.name for photo in tag.photos if photo.allow_labels)
-        form.onsale.checked = tag.onsale
         form.ticket_title.value = tag.ticket_title
         form.ticket_description.value = tag.ticket_description
         form.ticketmap_latexname.value = tag.ticketmap_latexname
@@ -1225,7 +1258,7 @@ class member_admin_tag_edit(member_admin_tag_form):
         session = scoped_session(sessionmaker(bind=engine)) # need a local session for chunked response
         instance = session.query(orm.Instance).filter_by(name=cfg.instance).one()
         try:
-            tag = session.query(orm.Tag).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+            tag = session.query(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
             form = self.form(skip_tag=tag)
             if form.validates():
                 web.header("Content-Type", "text/plain; charset=utf-8")
@@ -1235,7 +1268,6 @@ class member_admin_tag_edit(member_admin_tag_form):
                 tag.visible = web.input().has_key("visible")
                 tag.photopath = form.d.photopath
                 tag.photographer = form.d.photographer
-                tag.onsale = web.input().has_key("onsale")
                 tag.ticket_title = form.d.ticket_title
                 tag.ticket_description = form.d.ticket_description
                 tag.ticketmap_latexname = form.d.ticketmap_latexname
@@ -1277,12 +1309,12 @@ class member_admin_tag_delete(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, id):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         return render.page("/member/admin/tag/X/delete.html", render.member.admin.tag.delete(tag), self.member)
 
     @with_member_auth(admin_only=True)
     def POST(self, id):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         web.ctx.orm.delete(tag)
         raise web.seeother("../../tags.html")
 # }}} admin tags
@@ -1321,7 +1353,8 @@ class member_admin_tickets(object):
 
     def populate(self, tag):
         self.form = MapPrintForm()
-        self.tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        self.instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        self.tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         self.total = web.ctx.orm.query(func.count().label("count"),
                                   func.sum(orm.Ticket.regular).label("sum")).filter(or_(orm.Ticket.sold_id!=None, orm.Ticket.wheelchair != 'only')).first()
         self.available = web.ctx.orm.query(func.count().label("count"),
@@ -1343,7 +1376,15 @@ class member_admin_tickets(object):
     @with_member_auth(admin_only=True)
     def POST(self, tag):
         self.populate(tag)
-        if self.form.validates():
+        if web.input().get("action_activate"):
+            self.instance.onsale = self.tag
+        elif web.input().get("action_deactivate"):
+            self.instance.onsale = None
+        elif web.input().get("action_open"):
+            self.instance.sale_temporarily_closed = False
+        elif web.input().get("action_close"):
+            self.instance.sale_temporarily_closed = True
+        elif self.form.validates():
             mapformat, = [mapformat for mapformat in cfg.mapformats if mapformat.name == self.form.d.mapformat]
 
             tickets = list(web.ctx.orm.query(orm.Ticket).filter_by(tag_id=self.tag.id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')).order_by(orm.Ticket.id))
@@ -1386,14 +1427,13 @@ class member_admin_tickets(object):
             web.header("Content-Type", "application/pdf")
             web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
             return pdf
-        else:
-            return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(tag, total, available, booked, booked_sum), self.member)
+        return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(self), self.member)
 
 class member_admin_ticketmappng(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         selected = web.input().get("selected")
         if selected:
             selected = map(int, selected.split(','))
@@ -1412,7 +1452,7 @@ class member_admin_ticketmappdf(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         booked = web.input().get("booked")
         available = web.input().get("available")
         sold = web.input().get("sold")
@@ -1488,13 +1528,13 @@ class member_admin_tickets_new(member_admin_ticket_form):
     @with_member_auth(admin_only=True)
     def GET(self, tag):
         form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         return render.page("/member/admin/tickets/X/new.html", render.member.admin.ticket.new(form, tag), self.member)
 
     @with_member_auth(admin_only=True)
     def POST(self, tag):
         form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         x = web.input().get("map.x")
         y = web.input().get("map.y")
         clicked = None
@@ -1527,7 +1567,7 @@ class member_admin_tickets_edit(member_admin_ticket_form):
     @with_member_auth(admin_only=True)
     def GET(self, tag, sold):
         form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         form.gender.value = sold.gender
         form.name.value = sold.name
@@ -1540,7 +1580,7 @@ class member_admin_tickets_edit(member_admin_ticket_form):
     @with_member_auth(admin_only=True)
     def POST(self, tag, sold):
         form = self.form()
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         x = web.input().get("map.x")
         y = web.input().get("map.y")
@@ -1586,13 +1626,13 @@ class member_admin_tickets_delete(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag, sold):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         return render.page("/member/admin/link/X/sold/X/delete.html", render.member.admin.ticket.delete(sold), self.member)
 
     @with_member_auth(admin_only=True)
     def POST(self, tag, sold):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         web.ctx.orm.query(orm.Ticket).filter_by(sold_id=sold.id).update({"sold_id": None})
         web.ctx.orm.delete(sold)
@@ -1603,7 +1643,7 @@ class member_admin_tickets_pickup(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag, sold):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
         f = codecs.open(filename, "w", encoding="utf-8")
@@ -1636,7 +1676,7 @@ class member_admin_tickets_pay(object):
 
     @with_member_auth(admin_only=True)
     def GET(self, tag, sold):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         sum = 0
         for ticket in sold.tickets:
@@ -1645,7 +1685,7 @@ class member_admin_tickets_pay(object):
 
     @with_member_auth(admin_only=True)
     def POST(self, tag, sold):
-        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join(orm.Instance).filter_by(name=cfg.instance).one()
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         sold.payed = datetime.datetime.now()
         s = smtplib.SMTP()

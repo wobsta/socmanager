@@ -14,7 +14,7 @@ $var script:
      </script>
 <h1>Willkommen $member.firstname $member.lastname</h1>
 $if "admin" in [tag.name for tag in member.tags]:
-    <p>Du bist als <b>Administrator</b> in der Mitgliederliste des Schwäbischen Oratorienchors geführt und hast deshalb Zugriff auf die <a href="admin/members.html">Mitgliederverwaltung</a>.</p>
+    <p>Du bist als <b>Administrator</b> in der Mitgliederliste des Schwäbischen Oratorienchors geführt und hast deshalb Zugriff auf die <a href="admin/members.html">Chorverwaltung</a>.</p>
 $elif "Verein" in [tag.name for tag in member.tags]:
     <p>Du bist als <b>Vereinsmitglied</b> in der Mitgliederliste des Schwäbischen Oratorienchors geführt.</p>
 $elif "inaktiv" in [tag.name for tag in member.tags]:

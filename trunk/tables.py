@@ -13,6 +13,8 @@ metadata = MetaData()
 instance_table = Table("instance", metadata,
                        Column("id", Integer, primary_key=True),
                        Column("name", Unicode, unique=True, nullable=False),
+                       Column("onsale_id", Integer, ForeignKey("tag.id")),
+                       Column("sale_temporarily_closed", Boolean),
                        Column("description", Unicode))
 
 member_table = Table("member", metadata,
@@ -53,7 +55,6 @@ tag_table = Table("tag", metadata,
                   Column("visible", Boolean, nullable=False),
                   Column("photopath", Unicode),
                   Column("photographer", Unicode),
-                  Column("onsale", Boolean),
                   Column("ticket_title", Unicode),
                   Column("ticket_description", Unicode),
                   Column("ticketmap", LargeBinary),
@@ -163,7 +164,6 @@ sold_table = Table("sold", metadata,
                    Column("id", Integer, primary_key=True),
                    Column("name", Unicode, nullable=False),
                    Column("email", Unicode),
-                   Column("newsletter", Boolean),
                    Column("online", Boolean, nullable=False),
                    Column("bankcode", Unicode),
                    Column("pickupcode", Unicode),
@@ -180,6 +180,14 @@ coupon_table = Table("coupon", metadata,
                      Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
                      Column("member_id", Integer, ForeignKey("member.id")),
                      Column("sold_id", Integer, ForeignKey("sold.id")))
+
+newsletter_table = Table("newsletter", metadata,
+                         Column("id", Integer, primary_key=True),
+                         Column("gender", Unicode, nullable=False),
+                         Column("name", Unicode, nullable=False),
+                         Column("email", Unicode, nullable=False),
+                         Column("instance_id", Integer, ForeignKey("instance.id"), nullable=False),
+                         CheckConstraint("gender in ('female', 'male')"))
 
 
 if __name__ == "__main__":
@@ -199,4 +207,7 @@ if __name__ == "__main__":
     attachment_table.create()
     photo_table.create()
     photo_label_table.create()
-
+    ticket_table.create()
+    sold_table.create()
+    coupon_table.create()
+    newsletter_table.create()
