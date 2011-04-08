@@ -60,13 +60,12 @@ class Change(object):
 
 class Tag(object):
 
-    def __init__(self, name, description, visible, photopath, photographer, onsale, ticket_title, ticket_description, ticket_latexname):
+    def __init__(self, name, description, visible, photopath, photographer, ticket_title, ticket_description, ticket_latexname):
         self.name = name
         self.description = description
         self.visible = visible
         self.photopath = photopath
         self.photographer = photographer
-        self.onsale = onsale
         self.ticket_title = ticket_title
         self.ticket_description = ticket_description
         self.ticket_latexname = ticket_latexname
@@ -203,19 +202,34 @@ class Coupon(object):
         self.tag = tag
 
 
+class Newsletter(object):
+
+    def __init__(self, gender, name, email, instance):
+        self.gender = gender
+        self.name = name
+        self.email = email
+        self.instance = instance
+
+
 mapper(Instance, tables.instance_table,
        properties={"members": relation(Member,
                                        backref="instance",
                                        order_by=[tables.member_table.c.instance_order]),
                    "tags": relation(Tag,
+                                    primaryjoin=tables.instance_table.c.id==tables.tag_table.c.instance_id,
                                     backref="instance",
                                     order_by=[tables.tag_table.c.instance_order]),
+                   "onsale": relation(Tag,
+                                      primaryjoin=tables.instance_table.c.onsale_id==tables.tag_table.c.id),
                    "circulars": relation(Circular,
                                          backref="instance",
                                          order_by=[tables.circular_table.c.instance_order]),
                    "entrances": relation(Entrance,
                                          backref="instance",
-                                         order_by=[tables.entrance_table.c.instance_order])})
+                                         order_by=[tables.entrance_table.c.instance_order]),
+                   "newsletter": relation(Newsletter,
+                                          backref="instance",
+                                          order_by=[tables.newsletter_table.c.id])})
 
 mapper(Member, tables.member_table,
        properties={"changes": relation(Change,
@@ -297,6 +311,8 @@ mapper(Sold, tables.sold_table,
                                        order_by=[tables.ticket_table.c.id])})
 
 mapper(Coupon, tables.coupon_table)
+
+mapper(Newsletter, tables.newsletter_table)
 
 
 if __name__ == "__main__":
