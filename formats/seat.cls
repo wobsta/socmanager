@@ -1,13 +1,13 @@
-\DeclareOption*{\input{\CurrentOption.clo}}
-\ProcessOptions\relax
 \renewcommand{\normalsize}{\fontsize{7pt}{7pt}\selectfont}
 \renewcommand{\familydefault}{\sfdefault}
-\RequirePackage{ifthen,type1cm}
+\RequirePackage{ifthen,type1cm,color}
 \RequirePackage[a4paper]{geometry}
 \geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
 \setlength\unitlength{1cm}
 \setlength\parindent{0pt}
 \setlength\lineskip{0pt}
+\DeclareOption*{\input{\CurrentOption.clo}}
+\ProcessOptions\relax
 \newcommand\socSeat[5]{%
 \begin{picture}(5.25,4.95)
 \put(0,0){\line(1,0){5.25}}
@@ -22,5 +22,5 @@
 \end{picture}%
 \hspace{0pt plus 1pt}%
 }
-\newcommand\socTitle[2]{}
-\newcommand\socStat{}
+\renewcommand\socTitle[2]{}
+\renewcommand\socStat{}
