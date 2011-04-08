@@ -1,11 +1,9 @@
-\DeclareOption*{\input{\CurrentOption.clo}}
-\ProcessOptions\relax
 \renewcommand{\normalsize}{\fontsize{10}{10}\selectfont}
 \pagenumbering{arabic}
 \setlength\textwidth{6.5in}
 \setlength\textheight{8in}
 \renewcommand{\familydefault}{\sfdefault}
-\RequirePackage{ifthen,type1cm}
+\RequirePackage{ifthen,type1cm,color}
 \RequirePackage[paperwidth=200mm,paperheight=240mm]{geometry}
 \geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
 \RequirePackage[cam,a4,center]{crop}
@@ -20,6 +18,8 @@
 \definecolor{c3}{cmyk}{0.3,0.3,0,0}
 \definecolor{c4}{cmyk}{0,0.3,0,0}
 \definecolor{c5}{cmyk}{0.3,0,0,0}
+\DeclareOption*{\input{\CurrentOption.clo}}
+\ProcessOptions\relax
 \newcommand\socSeat[5]{%
   \ifthenelse{\equal{#1}{\lastSeatBlock}}{}{\stepcounter{blockCounter}}%
   \ifthenelse{\equal{#2}{\lastSeatRow}}{}{%
@@ -36,5 +36,5 @@
   \gdef\lastSeatBlock{#1}%
   \gdef\lastSeatRow{#2}%
 }
-\newcommand\socTitle[2]{}
-\newcommand\socStat{}
+\renewcommand\socTitle[2]{}
+\renewcommand\socStat{}

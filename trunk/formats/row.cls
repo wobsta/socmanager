@@ -1,8 +1,6 @@
-\DeclareOption*{\input{\CurrentOption.clo}}
-\ProcessOptions\relax
 \renewcommand{\normalsize}{\fontsize{7pt}{7pt}\selectfont}
 \renewcommand{\familydefault}{\sfdefault}
-\RequirePackage{ifthen,graphicx,xstring,type1cm}
+\RequirePackage{ifthen,graphicx,xstring,type1cm,color}
 \RequirePackage[a4paper]{geometry}
 \geometry{top=0mm,bottom=0mm,outer=0mm,left=0mm,right=0mm,nofoot,nohead,includeheadfoot}
 \setlength\unitlength{1cm}
@@ -11,6 +9,8 @@
 \gdef\lastSeatRow{}
 \newcounter{seatCounter}
 \newcounter{lastSeatCounter}
+\DeclareOption*{\input{\CurrentOption.clo}}
+\ProcessOptions\relax
 \newcommand\socSeat[5]{%
   \IfInteger{#3}{%
     \setcounter{seatCounter}{#3}%
@@ -43,5 +43,5 @@
     \stepcounter{lastSeatCounter}%
   }{}%
 }
-\newcommand\socTitle[2]{}
-\newcommand\socStat{}
+\renewcommand\socTitle[2]{}
+\renewcommand\socStat{}
