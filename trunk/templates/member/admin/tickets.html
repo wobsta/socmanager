@@ -17,7 +17,12 @@ $for sold, count, s in view.booked:
     $if not sold.online:
         <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
           <td>$sold.name</td>
-          <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
+          <td align="right">
+            $if count:
+                <a href="map.pdf?sold=$sold.id">$count</a>
+            $else:
+                0
+          </td>
           <td align="right">€$s</td>
           <td>
             <a href="sold/$sold.id/edit.html">Bearbeiten</a>,

@@ -1363,7 +1363,7 @@ class member_admin_tickets(object):
                                     func.count().label("count"),
                                     func.sum(orm.Ticket.regular).label("sum")).group_by(orm.Ticket.sold_id).subquery()
         self.booked = web.ctx.orm.query(orm.Sold, tickets.c.count, tickets.c.sum)\
-                                 .join((tickets, orm.Sold.id == tickets.c.sold_id))\
+                                 .outerjoin((tickets, orm.Sold.id == tickets.c.sold_id))\
                                  .order_by(orm.Sold.id).all()
         self.booked_sum = web.ctx.orm.query(func.count().label("count"),
                                        func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id!=None).first()
@@ -1516,7 +1516,6 @@ class member_admin_ticket_form(object):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Name", size=50),
                              web.form.Textbox("email", description="E-Mail", size=50),
-                             web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              web.form.Checkbox("online", description="online-Bestellung", value="yes"),
                              web.form.Hidden("selected"),
                              web.form.Button("Speichern", type="submit"),
@@ -1543,7 +1542,8 @@ class member_admin_tickets_new(member_admin_ticket_form):
             y = int(y)
             clicked = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if form.validates() and x is None and y is None:
-            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, newsletter=web.input().has_key("newsletter"), online=web.input().has_key("online"), tag=tag)
+            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, online=web.input().has_key("online"), tag=tag)
+            web.ctx.orm.commit()
             for ticket_id in set(map(int, form.d.selected.split(","))):
                 web.ctx.orm.query(orm.Ticket).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
                 web.ctx.orm.commit()
@@ -1572,7 +1572,6 @@ class member_admin_tickets_edit(member_admin_ticket_form):
         form.gender.value = sold.gender
         form.name.value = sold.name
         form.email.value = sold.email
-        form.newsletter.checked = sold.newsletter
         form.online.checked = sold.online
         form.selected.value = ",".join(str(ticket.id) for ticket in sold.tickets)
         return render.page("/member/admin/tickets/X/sold/X/edit.html", render.member.admin.ticket.edit(form, tag, sold), self.member)
@@ -1593,7 +1592,6 @@ class member_admin_tickets_edit(member_admin_ticket_form):
             sold.gender = form.d.gender
             sold.name = form.d.name
             sold.email = form.d.email
-            sold.newsletter = web.input().has_key("newsletter")
             sold.online = web.input().has_key("online")
             if form.d.selected:
                 selected = set(map(int, form.d.selected.split(",")))
