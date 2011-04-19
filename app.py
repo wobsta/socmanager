@@ -1546,11 +1546,10 @@ class member_admin_tickets_new(member_admin_ticket_form):
             clicked = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if form.validates() and x is None and y is None:
             sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, online=web.input().has_key("online"), tag=tag)
-            web.ctx.orm.commit()
-            web.ctx.orm.commit()
-            for ticket_id in set(map(int, form.d.selected.split(","))):
-                web.ctx.orm.query(orm.Ticket).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
+            if form.d.selected:
                 web.ctx.orm.commit()
+                for ticket_id in set(map(int, form.d.selected.split(","))):
+                    web.ctx.orm.query(orm.Ticket).filter_by(id=ticket_id).filter_by(sold_id=None).update({"sold_id": sold.id})
             raise web.seeother("index.html")
         else:
             if form.d.selected:
