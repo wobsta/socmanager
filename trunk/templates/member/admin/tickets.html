@@ -73,7 +73,7 @@ $for sold, count, s in view.booked:
           </td>
         </tr>
 </table>
-<p>Summe gebuchter Karten: €$sum([s for sold, count, s in view.booked if sold.online and sold.payed]), Summe nicht gebuchter Karten: €$sum([s for sold, count, s in view.booked if sold.online and not sold.payed]).</p>
+<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s in view.booked if sold.online and sold.payed]), davon €$sum([s for sold, count, s in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
 <br>
 <h2>Druckvorlagen</h2>
 <form action="index.html" method="POST">
