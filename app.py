@@ -1356,9 +1356,9 @@ class member_admin_tickets(object):
         self.instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         self.tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         self.total = web.ctx.orm.query(func.count().label("count"),
-                                  func.sum(orm.Ticket.regular).label("sum")).filter(or_(orm.Ticket.sold_id!=None, orm.Ticket.wheelchair != 'only')).first()
+                                       func.sum(orm.Ticket.regular).label("sum")).filter(or_(orm.Ticket.sold_id!=None, orm.Ticket.wheelchair != 'only')).first()
         self.available = web.ctx.orm.query(func.count().label("count"),
-                                      func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id==None).filter(orm.Ticket.wheelchair != 'only').first()
+                                           func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id==None).filter(orm.Ticket.wheelchair != 'only').first()
         tickets = web.ctx.orm.query(orm.Ticket.sold_id,
                                     func.count().label("count"),
                                     func.sum(orm.Ticket.regular).label("sum")).group_by(orm.Ticket.sold_id).subquery()
@@ -1366,7 +1366,9 @@ class member_admin_tickets(object):
                                  .outerjoin((tickets, orm.Sold.id == tickets.c.sold_id))\
                                  .order_by(orm.Sold.id).all()
         self.booked_sum = web.ctx.orm.query(func.count().label("count"),
-                                       func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id!=None).first()
+                                            func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.sold_id!=None).first()
+        self.booked_online = web.ctx.orm.query(orm.Ticket).join(orm.Sold).filter_by(online=True).count()
+
 
     @with_member_auth(admin_only=True)
     def GET(self, tag):
@@ -1454,6 +1456,7 @@ class member_admin_ticketmappdf(object):
     def GET(self, tag):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         booked = web.input().get("booked")
+        booked_online = web.input().get("booked_online")
         available = web.input().get("available")
         sold = web.input().get("sold")
         if sold:
@@ -1479,7 +1482,7 @@ class member_admin_ticketmappdf(object):
                     ticket.lum = None
             else:
                 if ticket.wheelchair != 'only' or ticket.sold_id is not None:
-                    if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None):
+                    if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None) or (booked_online and (ticket.sold_id is None or not ticket.sold.online)):
                         ticket.lum = "light"
                     else:
                         ticket.lum = "strong"
