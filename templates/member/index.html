@@ -34,8 +34,14 @@ $def show(*args):
   <dt>Deine Mitgliederdaten:<dt>
   <dd>
     <p>Adresse: $show(member.street, member.zip, member.city)</p>
-    <p>Kontakt: $show(member.phone, member.email)</p>
-    <p>Geburtstag: $show(member.birthday and member.birthday.strftime("%d.%m.%Y"))</p>
+    <p>Kontakt: $show(member.phone, member.email)
+      $if member.email and member.email_private:
+          (auf der Chorliste versteckt)
+    </p>
+    <p>Geburtstag: $show(member.birthday and member.birthday.strftime("%d.%m.%Y"))
+      $if member.birthday and member.birthday_private:
+          (auf der Chorliste versteckt)
+    </p>
     <p>Du kannst Deine Mitgliederdaten <a href="data.html">selbst aktualisieren</a>.</p>
     <p>Tags: $show(*[tag.name for tag in member.tags if tag.visible]) (<a href="tags.html">Details anzeigen</a>)</p>
   </dd>

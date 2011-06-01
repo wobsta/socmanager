@@ -440,7 +440,9 @@ DataForm = web.form.Form(web.form.Textbox("title", description="akademischer Tit
                          web.form.Textbox("longitudinal", description="Position longitudinal (siehe Karte unten)", readonly="readonly"),
                          web.form.Textbox("phone", description="Telefon (mehrere möglich; auch gern Fax-Nr.)", size=50),
                          web.form.Textbox("email", description="E-Mail (mehrere mit Komma getrennt möglich)", size=50),
+                         web.form.Checkbox("email_private", description="E-Mail auf der Chorliste verstecken", value="yes"),
                          web.form.Textbox("birthday", description="Geburtstag (freiwillig; Format TT.MM.JJJJ)"),
+                         web.form.Checkbox("birthday_private", description="Geburtstag auf der Chorliste verstecken", value="yes"),
                          web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
                          web.form.Button("Daten ändern", type="submit"),
                          validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
@@ -463,7 +465,9 @@ class member_data(object):
         form.longitudinal.value = self.member.longitudinal
         form.phone.value = self.member.phone
         form.email.value = self.member.email
+        form.email_private.checked = self.member.email_private
         form.birthday.value = self.member.birthday and self.member.birthday.strftime("%d.%m.%Y") or ""
+        form.birthday_private.checked = self.member.birthday_private
         form.notes.value = self.member.note
         return render.page("/member/data.html", render.member.data(form, cfg.maps_key[web.ctx.protocol]), self.member)
 
@@ -481,11 +485,13 @@ class member_data(object):
             self.member.longitudinal = form.d.longitudinal or None
             self.member.phone = form.d.phone
             self.member.email = form.d.email
+            self.member.email_private = web.input().has_key("email_private")
             birthday = get_birthday(form.d)
             if birthday is True:
                 self.member.birthday = None
             else:
                 self.member.birthday = birthday
+            self.member.birthday_private = web.input().has_key("birthday_private")
             self.member.note = form.d.notes
             new = unicode(self.member)
             if old != new:
@@ -799,7 +805,9 @@ class member_admin_member_form(object):
                              web.form.Textbox("longitudinal", description="Position longitudinal (siehe Karte unten)", readonly="readonly"),
                              web.form.Textbox("phone", description="Telefon (mehrere möglich; auch gern Fax-Nr.)", size=50),
                              web.form.Textbox("email", description="E-Mail (mehrere mit Komma getrennt möglich)", size=50),
+                             web.form.Checkbox("email_private", description="E-Mail auf der Chorliste verstecken", value="yes"),
                              web.form.Textbox("birthday", description="Geburtstag (Format TT.MM.JJJJ)"),
+                             web.form.Checkbox("birthday_private", description="Geburtstag auf der Chorliste verstecken", value="yes"),
                              web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
                              web.form.Textbox("tags", description="Tags", size=50),
                              web.form.Textbox("messages", description="Chorbriefe", size=50),
@@ -834,6 +842,8 @@ class member_admin_member_new(member_admin_member_form):
                 data["birthday"] = None
             else:
                 data["birthday"] = birthday
+            data["email_private"] = web.input().has_key("email_private")
+            data["birthday_private"] = web.input().has_key("birthday_private")
             del data["tags"]
             del data["messages"]
             member = orm.Member(**data)
@@ -867,7 +877,9 @@ class member_admin_member_edit(member_admin_member_form):
         form.longitudinal.value = member.longitudinal
         form.phone.value = member.phone
         form.email.value = member.email
+        form.email_private.checked = member.email_private
         form.birthday.value = member.birthday and member.birthday.strftime("%d.%m.%Y") or ""
+        form.birthday_private.checked = member.birthday_private
         form.notes.value = member.note
         form.tags.value = " ".join(tag.name for tag in member.tags)
         form.messages.value = " ".join(message.access_by and "%s:%s" % (message.circular.name, message.access_by) or message.circular.name
@@ -892,11 +904,13 @@ class member_admin_member_edit(member_admin_member_form):
             member.longitudinal = form.d.longitudinal or None
             member.phone = form.d.phone
             member.email = form.d.email
+            member.email_private = web.input().has_key("email_private")
             birthday = get_birthday(form.d)
             if birthday is True:
                 member.birthday = None
             else:
                 member.birthday = birthday
+            member.birthday_private = web.input().has_key("birthday_private")
             member.note = form.d.notes
             member.tags = get_tags(form.d, get_list=True)
             if self.instance.members.index(member) != int(form.d.pos):
@@ -1051,6 +1065,10 @@ class member_admin_print(member_admin_work_on_selection):
                                 value = value and value.strftime("%d.%m.%Y") or ""
                             else:
                                 value = value and unicode(value) or ""
+                            if format.hide_private and name == "email" and member.email_private:
+                                value = ""
+                            if format.hide_private and name == "birthday" and member.birthday_private:
+                                value = ""
                             x.startElement(name, {})
                             x.characters("\n%s\n" % value)
                             x.endElement(name)
@@ -1098,6 +1116,10 @@ class member_admin_print(member_admin_work_on_selection):
                                 value = value and value.strftime("%d.%m.%Y") or ""
                             else:
                                 value = value and unicode(value) or ""
+                            if format.hide_private and name == "email" and member.email_private:
+                                value = ""
+                            if format.hide_private and name == "birthday" and member.birthday_private:
+                                value = ""
                             f.write(u"\\member%s{%s}%%\n" % (name.capitalize(), TeX_escape(value)))
                         f.write(u"\\memberTags{%s}%%\n" % ", ".join(tag.name for tag in member.tags))
                         f.write(u"\\end{member}%\n")
