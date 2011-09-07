@@ -718,7 +718,7 @@ class member_admin_members(member_admin_work_on_selection):
     def form(self):
         self.instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         return web.form.Form(web.form.Dropdown("withorwithout", [("with", "mit"), ("without", "ohne")]),
-                             web.form.Dropdown("tag", [tag.name for tag in self.instance.tags]),
+                             web.form.Dropdown("tag", [(tag.id, tag.name) for tag in self.instance.tags]),
                              *[web.form.Checkbox(name="member_%i" % member.id, value="yes") for member in self.instance.members])
 
     @with_member_auth(admin_only=True)
@@ -741,14 +741,16 @@ class member_admin_members(member_admin_work_on_selection):
                 if form.d.withorwithout == "with":
                     return cond
                 return not cond
-            if web.input().get("add"):
-                for member in self.instance.members:
-                    if withorwithout(form.d.tag in [tag.name for tag in member.tags]):
-                        form["member_%i" % member.id].checked = True
-            elif web.input().get("remove"):
-                for member in self.instance.members:
-                    if withorwithout(form.d.tag in [tag.name for tag in member.tags]):
-                        form["member_%i" % member.id].checked = False
+            if web.input().get("add") or web.input().get("remove"):
+                tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(form.d.tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+                if form.d.withorwithout == "with":
+                    members = tag.members
+                else:
+                    ids = set(member.id for member in tag.members)
+                    members = [member for member in self.instance.members if member.id not in ids]
+                value = bool(web.input().get("add"))
+                for member in members:
+                    form["member_%i" % member.id].checked = value
             elif web.input().get("none"):
                 for member in self.instance.members:
                     form["member_%i" % member.id].checked = False
