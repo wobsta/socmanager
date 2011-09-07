@@ -1,4 +1,4 @@
-$def with (instance, form)
+$def with (instance, form, inaktiv_ids)
 $code:
     count = 0
     for key, value in form.d.items():
@@ -51,7 +51,7 @@ $var script:
         </td>
         <td class="search">
           <label for="$form['member_%i' % member.id].id">
-            $if [tag for tag in member.tags if tag.name == "inaktiv"]:
+            $if member.id in inaktiv_ids:
                 $member.lastname, $member.firstname
             $else:
                 <b>$member.lastname, $member.firstname</b>
