@@ -226,8 +226,8 @@ def with_member_auth(admin_only=False, active_only=False):
         def wrapper(self, *args, **kwargs):
             self.member = get_member()
             if (not self.member or
-                (admin_only and "admin" not in [tag.name for tag in self.member.tags]) or
-                (active_only and "inaktiv" in [tag.name for tag in self.member.tags])):
+                (admin_only and u"admin" not in [tag.name for tag in self.member.tags]) or
+                (active_only and u"inaktiv" in [tag.name for tag in self.member.tags])):
                 raise web.seeother("/login.html?%s" % (urllib.urlencode({"next": web.ctx.path})))
             return f(self, *args, **kwargs)
         return wrapper
@@ -406,7 +406,12 @@ class member(object):
     def GET(self, path):
         if not path:
             path = "index.html"
-        return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member), self.member)
+        if path == "index.html":
+            new_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by == None).order_by([orm.Circular.instance_order]).all()
+            old_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by != None).order_by([orm.Circular.instance_order]).all()
+            return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member, new_circulars, old_circulars), self.member)
+        else:
+            return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member), self.member)
 
 
 notnull = web.form.Validator("Notwendige Angabe", bool)
@@ -444,7 +449,7 @@ DataForm = web.form.Form(web.form.Textbox("title", description="akademischer Tit
                          web.form.Textbox("birthday", description="Geburtstag (freiwillig; Format TT.MM.JJJJ)"),
                          web.form.Checkbox("birthday_private", description="Geburtstag auf der Chorliste verstecken", value="yes"),
                          web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
-                         web.form.Button("Daten ändern", type="submit"),
+                         web.form.Button(u"Daten ändern", type="submit"),
                          validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
                                        web.form.Validator("Ungültiges Geburtsdatum.", get_birthday)])
 
@@ -518,7 +523,7 @@ AccessForm = web.form.Form(web.form.Textbox("login", description="Benutzername (
                            web.form.Password("oldpasswd", description="altes Passwort (falls vorhanden)"),
                            web.form.Password("newpasswd", description="neues Passwort"),
                            web.form.Password("newpasswd2", description="neues Passwort wiederholen"),
-                           web.form.Button("Zugang einrichten bzw. ändern", type="submit"),
+                           web.form.Button(u"Zugang einrichten bzw. ändern", type="submit"),
                            validators = [web.form.Validator("Altes Passwort stimmt nicht.", checkoldpasswd),
                                          web.form.Validator("Benutzername wird bereits von einem anderen Chormitglied verwendet.", checkloginavailable),
                                          web.form.Validator("Passwörter sind nicht identisch.", lambda i: i.newpasswd == i.newpasswd2),

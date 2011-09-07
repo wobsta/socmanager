@@ -1,4 +1,4 @@
-$def with (member)
+$def with (member, new_circulars, old_circulars)
 $var script:
      <script src="../static/jquery.min.js" type="text/javascript"></script>
      <script type="text/javascript">
@@ -59,34 +59,32 @@ $def show(*args):
   $if "Verein" in [tag.name for tag in member.tags]:
       <dt>Vereins-Seiten:</dt>
       <dd><p>Als aktives Vereinsmitglied hast Du Zugang zum <a href="verein/">Vereins-Wiki</a>.</p></dd>
-$def show_message(message):
-    $if message.circular.id != 1:
-        <li><a href="message/$message.circular.name/show.html">$message.circular.title vom $message.circular.created.strftime("%d.%m.%Y")</a></li>
+$def show_circular(circular):
+    $if circular.id != 1:
+        <li><a href="message/$circular.name/show.html">$circular.title vom $circular.created.strftime("%d.%m.%Y")</a></li>
     $else:
-        <li><a href="message/$message.circular.name/show.html">$message.circular.title</a></li>
+        <li><a href="message/$circular.name/show.html">$circular.title</a></li>
   <dt>Chorbriefe:</dt>
   <dd>
-    $ new_messages = [message for message in member.messages if not message.access_by]
-    $ old_messages = [message for message in member.messages if message.access_by]
-    $if new_messages:
-        $if len(new_messages) > 1:
-            <p>Du hast <b>$len(new_messages) ungelesene Chorbriefe</b>:</p>
+    $if new_circulars:
+        $if len(new_circulars) > 1:
+            <p>Du hast <b>$len(new_circulars) ungelesene Chorbriefe</b>:</p>
         $else:
             <p>Du hast <b>einen ungelesenen Chorbrief</b>:</p>
         <ul>
-          $for message in new_messages:
-              $:show_message(message)
+          $for circular in new_circulars:
+              $:show_circular(circular)
         </ul>
     $else:
         <p>Du hast keine ungelesenen Chorbriefe.</p>
-    $if old_messages:
-        $if len(old_messages) > 1:
-            <p id="show_archive">Es sind $len(old_messages) gelesene Chorbriefe in Deinem Archiv.</p>
+    $if old_circulars:
+        $if len(old_circulars) > 1:
+            <p id="show_archive">Es sind $len(old_circulars) gelesene Chorbriefe in Deinem Archiv.</p>
         $else:
             <p id="show_archive">Du hast einen gelesenen Chorbrief in Deinem Archiv.</p>
         <ul id="archive">
-          $for message in old_messages:
-              $:show_message(message)
+          $for circular in old_circulars:
+              $:show_circular(circular)
         </ul>
     $else:
         <p>Es sind keine gelesenen Chorbriefe in Deinem Archiv.</p>
