@@ -302,9 +302,9 @@ class tickets(ticket_form):
         instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         if not instance.onsale:
             newsletter_form = self.newsletter_form()
-            return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member)
+            return render.page("/tickets.html", render.tickets_info(newsletter_form), self.member)
         if instance.sale_temporarily_closed:
-            return render.page("/tickets_closed.html", render.tickets_closed(), self.member)
+            return render.page("/tickets.html", render.tickets_closed(), self.member)
         ticket_form = self.ticket_form()
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member)
 
