@@ -768,7 +768,8 @@ class member_admin_members(member_admin_work_on_selection):
                     raise web.seeother("circulars.html?selection=%s" % members)
                 elif web.input().get("links"):
                     raise web.seeother("links.html?selection=%s" % members)
-        return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form), self.member)
+        inaktiv_ids = set(id for id, in web.ctx.orm.query(orm.Member.id).join(tables.member_tag_table).join(orm.Tag).filter_by(name=u"inaktiv"))
+        return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form, inaktiv_ids), self.member)
 
 
 def get_tags(i, get_list=False):
