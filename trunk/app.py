@@ -1296,7 +1296,7 @@ class member_admin_tag_edit(member_admin_tag_form):
                 instance.tags.remove(tag)
                 instance.insert_tag(int(form.d.pos), tag)
                 photos = dict((photo.name, photo)
-                              for photo in session.query(orm.Photo).join(orm.Tag).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance))
+                              for photo in session.query(orm.Photo).join(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance_id==orm.Instance.id)).filter_by(name=cfg.instance))
                 yield "scanning photos…\n"
                 if tag.photopath:
                     for photo in sorted(os.listdir(tag.photopath)):
