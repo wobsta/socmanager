@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 #
 # socmanager, http://code.google.com/p/socmanager/
-# Copyright (C) 2010  André Wobst
+# Copyright (C) 2010-2011  André Wobst
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2213,7 +2213,7 @@ class member_admin_link_email(member_admin_work_on_selection):
 
 if path.endswith("/dev"):
     if __name__ == "__main__":
-        print "socmanager  Copyright (C) 2010  André Wobst"
+        print "socmanager  Copyright (C) 2010-2011  André Wobst"
         app.run()
 else:
     application = app.wsgifunc()
