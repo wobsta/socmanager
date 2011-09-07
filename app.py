@@ -726,7 +726,8 @@ class member_admin_members(member_admin_work_on_selection):
         form = self.form()
         for member in self.members():
             form["member_%i" % member.id].checked = True
-        return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form), self.member)
+        inaktiv_ids = set(id for id, in web.ctx.orm.query(orm.Member.id).join(tables.member_tag_table).join(orm.Tag).filter_by(name=u"inaktiv"))
+        return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form, inaktiv_ids), self.member)
 
     @with_member_auth(admin_only=True)
     def POST(self):
