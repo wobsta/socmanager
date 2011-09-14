@@ -141,7 +141,7 @@ def TeX_escape(value):
 LoginForm = web.form.Form(web.form.Textbox("login", description="Benutzername"),
                           web.form.Password("passwd", description="Passwort"),
                           web.form.Hidden("next"),
-                          web.form.Button("Login", type="submit"))
+                          web.form.Button("submit", type="submit", html=u"Login"))
 
 class login(object):
 
@@ -285,14 +285,14 @@ class ticket_form(object):
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              web.form.Hidden("selected"),
-                             web.form.Button("Karten verbindlich kaufen", type="submit"),
+                             web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
 
     def newsletter_form(self):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
-                             web.form.Button("Rundschreiben abonnieren", type="submit"),
+                             web.form.Button("submit", type="submit", html=u"Rundschreiben abonnieren"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
 
 class tickets(ticket_form):
@@ -449,7 +449,7 @@ DataForm = web.form.Form(web.form.Textbox("title", description="akademischer Tit
                          web.form.Textbox("birthday", description="Geburtstag (freiwillig; Format TT.MM.JJJJ)"),
                          web.form.Checkbox("birthday_private", description="Geburtstag auf der Chorliste verstecken", value="yes"),
                          web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
-                         web.form.Button(u"Daten ändern", type="submit"),
+                         web.form.Button("submit", type="submit", html=u"Daten ändern"),
                          validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
                                        web.form.Validator("Ungültiges Geburtsdatum.", get_birthday)])
 
@@ -523,7 +523,7 @@ AccessForm = web.form.Form(web.form.Textbox("login", description="Benutzername (
                            web.form.Password("oldpasswd", description="altes Passwort (falls vorhanden)"),
                            web.form.Password("newpasswd", description="neues Passwort"),
                            web.form.Password("newpasswd2", description="neues Passwort wiederholen"),
-                           web.form.Button(u"Zugang einrichten bzw. ändern", type="submit"),
+                           web.form.Button("submit", type="submit", html=u"Zugang einrichten bzw. ändern"),
                            validators = [web.form.Validator("Altes Passwort stimmt nicht.", checkoldpasswd),
                                          web.form.Validator("Benutzername wird bereits von einem anderen Chormitglied verwendet.", checkloginavailable),
                                          web.form.Validator("Passwörter sind nicht identisch.", lambda i: i.newpasswd == i.newpasswd2),
@@ -820,7 +820,7 @@ class member_admin_member_form(object):
                              web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
                              web.form.Textbox("tags", description="Tags", size=50),
                              web.form.Textbox("messages", description="Chorbriefe", size=50),
-                             web.form.Button("Speichern", type="submit"),
+                             web.form.Button("submit", type="submit", html=u"Speichern"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
                                            web.form.Validator("Ungültiges Geburtsdatum.", get_birthday),
                                            web.form.Validator("Ungültige Tags.", get_tags),
@@ -1017,7 +1017,7 @@ PrintForm = web.form.Form(web.form.Dropdown("format", [(format.name, format.desc
                                                        for format in cfg.formats], description="Format"),
                           web.form.Textbox("description", description="ggf. Beschreibung"),
                           web.form.Hidden("selection"),
-                          web.form.Button("Erzeugen", type="submit"))
+                          web.form.Button("submit", type="submit", html=u"Erzeugen"))
 
 class member_admin_print(member_admin_work_on_selection):
 
@@ -1217,7 +1217,7 @@ class member_admin_tag_form(object):
                              web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
                              web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
                              web.form.Textbox("ticketmap_latexname", description="Karten-Plan (Name der LaTeX class option)", size=50),
-                             web.form.Button("Speichern", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Speichern"))
 
 
 class member_admin_tag_new(member_admin_tag_form):
@@ -1378,7 +1378,7 @@ def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
 
 MapPrintForm = web.form.Form(web.form.Dropdown("mapformat", [(mapformat.name, mapformat.description)
                                                              for mapformat in cfg.mapformats], description="Format"),
-                             web.form.Button("Erzeugen", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Erzeugen"))
 
 class member_admin_tickets(object):
 
@@ -1552,7 +1552,7 @@ class member_admin_ticket_form(object):
                              web.form.Textbox("email", description="E-Mail", size=50),
                              web.form.Checkbox("online", description="online-Bestellung", value="yes"),
                              web.form.Hidden("selected"),
-                             web.form.Button("Speichern", type="submit"),
+                             web.form.Button("submit", type="submit", html=u"Speichern"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
 
 
@@ -1753,7 +1753,7 @@ class member_admin_circulars(member_admin_work_on_selection):
                                                           ("change:snailmail", "als Brief gelesen marieren"),
                                                           ("delete", "entfernen")], description="Aktion"),
                              web.form.Hidden("selection"),
-                             web.form.Button("Ausführen", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Ausführen"))
 
     @with_member_auth(admin_only=True)
     def GET(self):
@@ -1836,7 +1836,7 @@ class member_admin_circular_copy(object):
         return web.form.Form(web.form.Dropdown("circular", [("0", "(neuen leeren Chorbrief anlegen)")] +
                                                            [(circular.id, circular.title)
                                                             for circular in self.instance.circulars], description="Inhalt von altem Chorbrief kopieren"),
-                             web.form.Button("Ausführen", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Ausführen"))
 
     @with_member_auth(admin_only=True)
     def GET(self):
@@ -1855,7 +1855,7 @@ class member_admin_circular_form(object):
                                                        for i, circular in enumerate(circulars)], description="Position in der Liste"),
                              web.form.Textarea("html", description="HTML", cols=80, rows=40),
                              web.form.Textarea("email", description="E-Mail", cols=80, rows=40),
-                             web.form.Button("Speichern", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Speichern"))
 
 
 class member_admin_circular_new(member_admin_circular_form):
@@ -1950,7 +1950,7 @@ class member_admin_attachment_form(object):
                              web.form.Dropdown("pos", [("0", "an erster Position")] +
                                                       [(str(i+1), "nach %s" % attachment.name)
                                                        for i, attachment in enumerate(attachments)], description="Position in der Liste"),
-                             web.form.Button("Speichern", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Speichern"))
 
 
 class member_admin_attachment_show(member_admin_attachment_form):
@@ -2080,7 +2080,7 @@ class member_admin_link_form(object):
                              web.form.Dropdown("pos", [("0", "an erster Position")] +
                                                       [(str(i+1), "nach %s vom %s" % (entrance.url, entrance.expire.strftime("%d.%m.%Y")))
                                                        for i, entrance in enumerate(entrances)], description="Position in der Liste"),
-                             web.form.Button("Speichern", type="submit"),
+                             web.form.Button("submit", type="submit", html=u"Speichern"),
                              validators = [web.form.Validator("Ungültiges Ablaufdatum.", get_expire)])
 
 
@@ -2153,7 +2153,7 @@ class member_admin_link_email(member_admin_work_on_selection):
         return web.form.Form(web.form.Dropdown("circular", [(str(circular.id), "%s vom %s" % (circular.title, circular.created.strftime("%d.%m.%Y")) if circular.id != 1 else circular.title)
                                                             for circular in self.instance.circulars], description="E-Mail-Text"),
                              web.form.Hidden("selection"),
-                             web.form.Button("Versenden", type="submit"))
+                             web.form.Button("submit", type="submit", html=u"Versenden"))
 
     @with_member_auth(admin_only=True)
     def GET(self, id):
