@@ -2202,6 +2202,7 @@ class member_admin_link_email(member_admin_work_on_selection):
                 if len(to_emails) > 1:
                     msg["Cc"] = ",".join(to_emails[1:])
                 msg["Date"] = email.Utils.formatdate(localtime=True)
+                msg["Precedence"] = "bulk"
                 yield "%i: %s\n" % (i+1, to_emails[0])
                 s.sendmail(cfg.from_email, to_emails, msg.as_string())
             s.close()
