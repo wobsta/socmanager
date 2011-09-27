@@ -1,5 +1,5 @@
 \nonstopmode
-\renewcommand\normalsize{\fontsize{9}{10.5}\selectfont}
+\renewcommand\normalsize{\fontsize{8}{9.5}\selectfont}
 \pagenumbering{arabic}
 \RequirePackage{ifthen,multicol,substr}
 \RequirePackage{times}
