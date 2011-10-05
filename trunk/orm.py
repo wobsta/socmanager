@@ -200,6 +200,7 @@ class Coupon(object):
     def __init__(self, amount, tag):
         self.amount = amount
         self.tag = tag
+        self.code = passwd.generate()
 
 
 class Newsletter(object):
@@ -257,9 +258,7 @@ mapper(Member, tables.member_table,
                                         backref="member",
                                         primaryjoin=and_(tables.member_table.c.id==tables.message_table.c.member_id,
                                                          tables.circular_table.c.id==tables.message_table.c.circular_id),
-                                        order_by=[tables.circular_table.c.instance_order]),
-                   "coupons": relation(Coupon,
-                                       backref="member")})
+                                        order_by=[tables.circular_table.c.instance_order])})
 
 mapper(Change, tables.change_table)
 
@@ -308,7 +307,10 @@ mapper(Ticket, tables.ticket_table)
 mapper(Sold, tables.sold_table,
        properties={"tickets": relation(Ticket,
                                        backref="sold",
-                                       order_by=[tables.ticket_table.c.id])})
+                                       order_by=[tables.ticket_table.c.id]),
+                   "coupons": relation(Coupon,
+                                       backref="sold",
+                                       order_by=[tables.coupon_table.c.id])})
 
 mapper(Coupon, tables.coupon_table)
 

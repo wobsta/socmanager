@@ -1,4 +1,8 @@
-$def with (tag, sold)
+$def with (tag, sold, printview, hash)
+$if printview:
+    <form action="tickets_ok_${hash}.html" method="GET"><div style="float:right;"><input type="submit" name="submit" value="zur Normalansicht"></div></form>
+$else:
+    <form action="tickets_ok_${hash}.html" method="POST"><div style="float:right;"><input type="submit" name="submit" value="zur Druckansicht"></div></form>
 <h1>Kartenverkauf</h1>
 <h2>$tag.ticket_title</h2>
 <h3>$tag.ticket_description</h3>
@@ -10,14 +14,16 @@ per E-Mail an $sold.email zu.</p>
   $for ticket in sold.tickets:
       <li>$ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, €$ticket.regular)</li>
 </ul>
-<p>Bitte überweisen Sie den Gesamtbetrag von EUR $(sum(ticket.regular for ticket in sold.tickets)) auf das Konto
+$if sum(coupon.amount for coupon in sold.coupons):
+    <p>Mit dieser Bestellung wurde ein Gutscheinwert von €$(sum(coupon.amount for coupon in sold.coupons)) eingelöst.</p>
+<p>Bitte überweisen Sie den Gesamtbetrag von €$(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)) auf das Konto
 des Schwäbischen Oratorienchors:</p>
 <ul>
 <li>Kontoinhaber: Schwäbischer Oratorienchor</li>
 <li>Kontonummer: 30209605</li>
 <li>Bankleitzahl: 72050101</li>
 <li>Name der Bank: Kreissparkasse Augsburg</li>
-<li>Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets))</li>
+<li>Betrag: €$(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))</li>
 <li>Verwendungszweck: PNR $(sold.id)/$sold.bankcode</li>
 </ul>
 <p>Bitte bezahlen Sie die Karten innerhalb von 2 Wochen und auf jeden Fall aber

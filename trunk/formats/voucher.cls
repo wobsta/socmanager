@@ -21,13 +21,15 @@
 \begin{picture}(105,49.5)
 \put(10,40){\parbox[t]{8.5cm}{Schw\"abischer Oratorienchor\par
 Gutschein f\"ur eine Chor-Freikarte\par
-\vspace{2mm}
+\vspace{1mm}
 \@info\par
-\vspace{2mm}
+\vspace{1mm}
 Kategorie B, \EUR{} 18\par
-nutzbar beim Kauf von Karten einer anderen Kategorie\par
-einl\"osbar nur im Vorverkauf w\"ahrend der Chorproben\par
-\vspace{5mm}
+\vspace{1mm}
+{\fontsize{8}{9.5}\selectfont\raggedright
+auch nutzbar beim Kauf von Karten einer anderen Kategorie\par
+einl\"osbar nur im Vorverkauf w\"ahrend der Chorproben sowie im Online-Kartenverkauf (bis ca. eine Woche vor dem Konzerttermin)\par}
+\vspace{3mm}
 \member@Firstname{} \member@Lastname}}
 \put(0,0){\line(1,0){105}}
 \put(0,0){\line(0,1){49.5}}

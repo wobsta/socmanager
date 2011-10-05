@@ -16,14 +16,17 @@ Folgende Karten sind für Sie reserviert:
 $for ticket in sold.tickets:
     - $ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, EUR $ticket.regular)
 
-Bitte überweisen Sie den Gesamtbetrag von EUR $(sum(ticket.regular for ticket in sold.tickets)) auf das Konto
+$if sum(coupon.amount for coupon in sold.coupons):
+    Mit dieser Bestellung wurde ein Gutscheinwert von EUR $(sum(coupon.amount for coupon in sold.coupons)) eingelöst.
+
+Bitte überweisen Sie den Gesamtbetrag von EUR $(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)) auf das Konto
 des Schwäbischen Oratorienchors:
 
 - Kontoinhaber: Schwäbischer Oratorienchor
 - Kontonummer: 30209605
 - Bankleitzahl: 72050101
 - Name der Bank: Kreissparkasse Augsburg
-- Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets))
+- Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))
 - Verwendungszweck: PNR $(sold.id)/$sold.bankcode
 
 Bitte bezahlen Sie die Karten innerhalb von 2 Wochen und auf jeden Fall aber

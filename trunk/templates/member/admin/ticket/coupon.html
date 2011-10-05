@@ -1,0 +1,28 @@
+$def with (form, tag, coupons)
+<h1><a href="../../../members.html">Chorverwaltung</a>: <a href="index.html">Karten</a>: Gutschein-Verwaltung</h1>
+<h2>Liste der Gutscheine</h2>
+<table>
+<tr>
+  <th>Code</th>
+  <th>Wert</th>
+  <th>verwendet</th>
+</tr>
+$for coupon in coupons:
+    <tr>
+      <td>${coupon.id}/${coupon.code}</th>
+      <td>€ $coupon.amount</td>
+      <td>
+        $if coupon.sold_id:
+            <a href="sold/${coupon.sold.id}/edit.html">ja</a> (${coupon.sold.name})
+        $else:
+            nein
+      </td>
+    </tr>
+</table>
+<p><a href="coupons.pdf">Gutscheine ausdrucken</a></p>
+<br>
+<h2>Neue Gutscheine anlegen</h2>
+<form action="coupon.html" enctype="multipart/form-data" method="POST">
+$:form.render()
+</form>
+<p>zurück zu den <a href="index.html">Karten</a></p>
