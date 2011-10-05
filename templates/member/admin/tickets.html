@@ -5,9 +5,9 @@ $def with (view, pickup=None)
 <h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><td></td><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th></tr>
-  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$view.booked_sum.count</a></td><td align="right">€$view.booked_sum.sum</td><td align="right">€$(view.coupon_used.sum or 0)</td><td align="right">€${view.booked_sum.sum-(view.coupon_used.sum or 0)}</td></tr>
-  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$view.available.sum</td><td align="right">€$(view.coupon_available.sum or 0)</td><td align="right">€${view.available.sum-(view.coupon_available.sum or 0)}</td></tr>
-  <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$view.total.sum</td><td align="right">€$((view.coupon_used.sum or 0)+(view.coupon_available.sum or 0))</td><td align="right">€${view.total.sum-(view.coupon_used.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
+  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$view.booked_sum.count</a></td><td align="right">€$(view.booked_sum.sum or 0)</td><td align="right">€$(view.coupon_used.sum or 0)</td><td align="right">€${(view.booked_sum.sum or 0)-(view.coupon_used.sum or 0)}</td></tr>
+  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$(view.available.sum or 0)</td><td align="right">€$(view.coupon_available.sum or 0)</td><td align="right">€${(view.available.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
+  <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$(view.total.sum or 0)</td><td align="right">€$((view.coupon_used.sum or 0)+(view.coupon_available.sum or 0))</td><td align="right">€${(view.total.sum or 0)-(view.coupon_used.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
 </table>
 <br>
 <div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
