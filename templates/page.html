@@ -1,4 +1,4 @@
-$def with (url, content, member, printview=False)
+$def with (url, content, member, ticket_sale_open, printview=False)
 $code:
     menu = ("/index.html", "Startseite",
             "/project.html", "Projekte",
@@ -31,16 +31,18 @@ $if not printview:
     <div id="menu">
       <ul>
         $for menu_url, name in pairwise(menu):
-            $if name == "Karten_new":
-                <li class="new">
-            $elif name == "Mitglieder":
+            $if name == "Mitglieder":
                 <li class="member">
             $else:
                 <li>
               $if url == menu_url:
                   $name
+                  $if name == "Karten" and ticket_sale_open:
+                      <img src="${homepath}static/buy_now.gif" alt="jetzt kaufen" width="60" height="14" border="0" style="position:relative;top:2pt;">
               $else:
                   <a href="$homepath$menu_url[1:]">$name</a>
+                  $if name == "Karten" and ticket_sale_open:
+                      <a href="$homepath$menu_url[1:]"><img src="${homepath}static/buy_now.gif" alt="jetzt kaufen" width="60" height="14" border="0" style="position:relative;top:2pt;"></a>
             </li>
       </ul>
     </div>

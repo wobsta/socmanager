@@ -180,7 +180,6 @@ coupon_table = Table("coupon", metadata,
                      Column("amount", Integer, nullable=False),
                      Column("code", Unicode, nullable=False),
                      Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
-                     Column("member_id", Integer, ForeignKey("member.id")),
                      Column("sold_id", Integer, ForeignKey("sold.id")))
 
 newsletter_table = Table("newsletter", metadata,

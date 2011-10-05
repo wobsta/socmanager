@@ -1,19 +1,20 @@
 $def with (view, pickup=None)
 <h1><a href="../../members.html">Chorverwaltung</a>: Karten</h1>
 <p>$view.tag.description</p>
+<div style="float:right;"><a href="map.html">Plan-Konfiguration</a>, <a href="coupon.html">Gutschein-Verwaltung</a></div>
 <h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><td></td><th>Anzahl</th><th>Wert</th></tr>
-  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$view.booked_sum.count</a></td><td align="right">€$view.booked_sum.sum</td></tr>
-  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$view.available.sum</td></tr>
-  <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$view.total.sum</td></tr>
+  <tr><td></td><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th></tr>
+  <tr><th>verkauft</th><td align="right"><a href="map.pdf?booked=1">$view.booked_sum.count</a></td><td align="right">€$view.booked_sum.sum</td><td align="right">€$(view.coupon_used.sum or 0)</td><td align="right">€${view.booked_sum.sum-(view.coupon_used.sum or 0)}</td></tr>
+  <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$view.available.sum</td><td align="right">€$(view.coupon_available.sum or 0)</td><td align="right">€${view.available.sum-(view.coupon_available.sum or 0)}</td></tr>
+  <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$view.total.sum</td><td align="right">€$((view.coupon_used.sum or 0)+(view.coupon_available.sum or 0))</td><td align="right">€${view.total.sum-(view.coupon_used.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
 </table>
 <br>
-<h2>Nicht online gekaufte Karten</h2>
 <div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
+<h2>Nicht online gekaufte Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><th>Name</th><th>Anzahl</th><th>Wert</th><th>Aktion</th></tr>
-$for sold, count, s in view.booked:
+  <tr><th>Name</th><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th><th>Aktion</th></tr>
+$for sold, count, s, coupons in view.booked:
     $if not sold.online:
         <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
           <td>$sold.name</td>
@@ -23,7 +24,9 @@ $for sold, count, s in view.booked:
             $else:
                 0
           </td>
-          <td align="right">€$s</td>
+          <td align="right">€$(s or 0)</td>
+          <td align="right">€${coupons or 0}</td>
+          <td align="right">€${(s or 0)-(coupons or 0)}</td>
           <td>
             <a href="sold/$sold.id/edit.html">Bearbeiten</a>,
             <a href="sold/$sold.id/delete.html">Löschen</a>\
@@ -48,8 +51,8 @@ $else:
   </p>
 </form>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><th>Name</th><th>Reservierung</th><th>Bezahlung</th><th>Anzahl</th><th>Wert</th><th>Aktion</th></tr>
-$for sold, count, s in view.booked:
+  <tr><th>Name</th><th>Reservierung</th><th>Bezahlung</th><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th><th>Aktion</th></tr>
+$for sold, count, s, coupons in view.booked:
     $if sold.online:
         <tr onmouseover="style.backgroundColor='#ccc';" onmouseout="style.backgroundColor='#fff';">
           <td>$sold.name</td>
@@ -66,6 +69,8 @@ $for sold, count, s in view.booked:
           </td>
           <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
           <td align="right">€$s</td>
+          <td align="right">€${coupons or 0}</td>
+          <td align="right">€${s-(coupons or 0)}</td>
           <td>
             <a href="sold/$sold.id/pickup.html">Abholschein</a>,
             <a href="sold/$sold.id/edit.html">Bearbeiten</a>,
@@ -73,7 +78,7 @@ $for sold, count, s in view.booked:
           </td>
         </tr>
 </table>
-<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s in view.booked if sold.online and sold.payed]), davon €$sum([s for sold, count, s in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
+<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s, coupons in view.booked if sold.online and sold.payed]), davon €$sum([s for sold, count, s, coupons in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
 <br>
 <h2>Druckvorlagen</h2>
 <form action="index.html" method="POST">
