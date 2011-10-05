@@ -23,10 +23,6 @@ Online-Gutscheincode: #1\par
 \fontsize{8}{9.5}\selectfont
 Hinweis: Mehrere Gutscheine k\"onnen gleichzeitig eingel\"ost werden, indem man mehrere Gutscheincodes mit Komma getrennt in das Gutscheinfeld eintr\"agt.\par
 }}
-\put(0,0){\line(1,0){105}}
-\put(0,0){\line(0,1){49.5}}
-\put(105,49.5){\line(-1,0){105}}
-\put(105,49.5){\line(0,-1){49.5}}
 \end{picture}%
 \hspace{0pt plus 1pt}%
 }
