@@ -1601,7 +1601,7 @@ class SeatLoadHandler(xml.sax.handler.ContentHandler):
 
     def startElement(self, name, attrs):
         if name == "seat":
-            attrs = dict(attrs)
+            attrs = dict((str(key), attrs[key]) for key in attrs)
             attrs["image_light"] = attrs["image_light"].decode('hex')
             attrs["image_strong"] = attrs["image_strong"].decode('hex')
             attrs["left"] = int(attrs["left"])
