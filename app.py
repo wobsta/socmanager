@@ -83,6 +83,7 @@ urls = ("/login.html$", "login",
         "/member/admin/tickets/(\d+)/map.html$", "member_admin_tickets_map",
         "/member/admin/tickets/(\d+)/coupon.html$", "member_admin_tickets_coupon",
         "/member/admin/tickets/(\d+)/coupons.pdf$", "member_admin_tickets_couponspdf",
+        "/member/admin/tickets/(\d+)/newsletter.html$", "member_admin_tickets_newsletter",
         "/member/admin/tickets/(\d+)/new.html$", "member_admin_tickets_new",
         "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
         "/member/admin/tickets/(\d+)/sold/(\d+)/pay.html$", "member_admin_tickets_pay",
@@ -336,6 +337,7 @@ class tickets(ticket_form):
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, tag=instance.onsale)
             if web.input().has_key("newsletter"):
+                web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
             web.ctx.orm.add(sold)
             web.ctx.orm.commit()
@@ -358,7 +360,6 @@ class tickets(ticket_form):
             if amount <= 0:
                 sold.payed = datetime.datetime.now()
             web.ctx.orm.commit()
-            print "tickets_ok_%s.html" % hashlib.md5(("/".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest()
             s = smtplib.SMTP()
             s.connect()
             if amount > 0:
@@ -417,17 +418,26 @@ class newsletter(ticket_form):
 
     @with_member_info
     def GET(self):
+        remove = web.input().get("remove", "")
+        if remove:
+            return render.page("/newsletter.html", render.newsletter_remove(remove), self.member, ticket_sale_open())
         newsletter_form = self.newsletter_form()
         return render.page("/newsletter.html", render.newsletter(newsletter_form), self.member, ticket_sale_open())
 
     @with_member_info
     def POST(self):
+        remove = web.input().get("remove", "")
+        if remove:
+            web.ctx.orm.query(orm.Newsletter).filter_by(email=remove).delete()
+            return render.page("/newsletter_removed.html", render.newsletter_removed(), self.member, ticket_sale_open())
         newsletter_form = self.newsletter_form()
         if newsletter_form.validates():
             instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+            web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
             orm.Newsletter(newsletter_form.d.gender, newsletter_form.d.name, newsletter_form.d.email, instance)
             return render.page("/newsletter_ok.html", render.newsletter_ok(), self.member, ticket_sale_open())
         return render.page("/newsletter.html", render.newsletter(newsletter_form), self.member, ticket_sale_open())
+
 # }}} public
 
 # {{{ member
@@ -1658,7 +1668,7 @@ class member_admin_tickets_coupon(object):
     @with_member_auth(admin_only=True)
     def GET(self, tag):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        coupons = web.ctx.orm.query(orm.Coupon).filter_by(tag=tag).all()
+        coupons = web.ctx.orm.query(orm.Coupon).filter_by(tag=tag).order_by(orm.Coupon.id).all()
         form = self.form()
         return render.page("/member/admin/tickets/X/coupon.html", render.member.admin.ticket.coupon(form, tag, coupons), self.member, ticket_sale_open())
 
@@ -1704,6 +1714,37 @@ class member_admin_tickets_couponspdf(object):
         web.header("Content-Type", "application/pdf")
         web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
         return pdf
+
+
+class member_admin_tickets_newsletter(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        newsletters = web.ctx.orm.query(orm.Newsletter).join(orm.Instance).filter_by(name=cfg.instance).all()
+        return render.page("/member/admin/tickets/X/newsletter.html", render.member.admin.ticket.newsletter(newsletters), self.member, ticket_sale_open())
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag):
+        session = scoped_session(sessionmaker(bind=engine)) # need a local session for chunked response
+        tag = session.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        newsletters = session.query(orm.Newsletter).join(orm.Instance).filter_by(name=cfg.instance).all()
+        web.header("Content-Type", "text/plain; charset=utf-8")
+        web.header("Transfer-Encoding", "chunked")
+        yield "sending %i emails…\n" % len(newsletters)
+        s = smtplib.SMTP()
+        s.connect()
+        for i, newsletter in enumerate(newsletters):
+            msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.newsletter_text(tag, newsletter)).encode("utf-8"), _charset="utf-8")
+            msg["Subject"] = "Schwäbischer Oratorienchor: Kartenverkauf gestartet"
+            msg["From"] = cfg.from_email
+            msg["To"] = newsletter.email
+            msg["Date"] = email.Utils.formatdate(localtime=True)
+            msg["Precedence"] = "bulk"
+            yield "%i: %s\n" % (i+1, newsletter.email)
+            s.sendmail(cfg.from_email, [newsletter.email], msg.as_string())
+        s.close()
+        yield "complete.\n"
+        session.close()
 
 
 class member_admin_ticket_form(object):

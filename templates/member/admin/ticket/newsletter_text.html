@@ -1,0 +1,38 @@
+$def with (tag, newsletter)
+$if newsletter.gender == 'female':
+    Sehr geehrte Frau $newsletter.name,
+$else:
+    Sehr geehrter Herr $newsletter.name,
+\
+
+der Online-Kartenverkauf für das aktuelle Projekt des Schwäbischen
+Oratorienchors hat begonnen.
+
+$tag.ticket_title
+
+$tag.ticket_description
+
+Sichern Sie sich jetzt Ihre Eintrittskarten für dieses Konzert auf
+http://www.schwaebischer-oratorienchor.de/tickets.html
+
+Alle Karten sind Platzkarten. Es ist sehr empfehlenswert, vom Kartenvorverkauf
+gebraucht zu machen, um sich frühzeitig einen guten Platz zu sichern. Durch den
+im Chor bereits begonnenen Vorverkauf werden die besten Plätze sehr schnell
+vergeben.
+
+Sie erhalten diese E-Mail, weil Ihre E-Mail-Adresse für das Rundschreiben des
+Schwäbischen Oratorienchors zum Start des Kartenverkaufs eingetragen wurde.
+Wenn Sie in Zukunft keine solche Benachrichtigung mehr erhalten wollen, melden
+Sie sich mit folgendem Link ab:
+http://www.schwaebischer-oratorienchor.de/newsletter.html?remove=$newsletter.email
+
+Wir bedanken uns ganz herzlich für Ihr Interesse an unseren Konzerten und
+freuen uns darauf, Sie als unsere Gäste begrüßen zu dürfen!
+
+
+André Wobst,
+online-Kartenverkauf des Schwäbischen Oratorienchors
+
+
+PS: Für Rückfragen kontaktieren Sie bitte info@schwaebischer-oratorienchor.de.
+    Sie können beispielsweise einfach auf diese E-Mail antworten.
