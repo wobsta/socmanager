@@ -1,7 +1,7 @@
 $def with (view, pickup=None)
+<div style="float:right;text-align:right;"><a href="map.html">Plan-Konfiguration</a><br><a href="coupon.html">Gutschein-Verwaltung</a><br><a href="newsletter.html">Rundschreiben</a></div>
 <h1><a href="../../members.html">Chorverwaltung</a>: Karten</h1>
 <p>$view.tag.description</p>
-<div style="float:right;"><a href="map.html">Plan-Konfiguration</a>, <a href="coupon.html">Gutschein-Verwaltung</a></div>
 <h2>Übersicht über alle Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
   <tr><td></td><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th></tr>
@@ -78,7 +78,7 @@ $for sold, count, s, coupons in view.booked:
           </td>
         </tr>
 </table>
-<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s, coupons in view.booked if sold.online and sold.payed]), davon €$sum([s for sold, count, s, coupons in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
+<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s, coupons in view.booked if sold.online]), davon €$sum([s for sold, count, s, coupons in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
 <br>
 <h2>Druckvorlagen</h2>
 <form action="index.html" method="POST">
