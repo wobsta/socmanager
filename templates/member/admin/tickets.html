@@ -9,7 +9,7 @@ $def with (view, pickup=None)
   <tr><th>frei</th><td align="right"><a href="map.pdf?available=1">$view.available.count</a></td><td align="right">€$(view.available.sum or 0)</td><td align="right">€$(view.coupon_available.sum or 0)</td><td align="right">€${(view.available.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
   <tr><th>Summe</th><td align="right"><a href="map.pdf">$view.total.count</a></td><td align="right">€$(view.total.sum or 0)</td><td align="right">€$((view.coupon_used.sum or 0)+(view.coupon_available.sum or 0))</td><td align="right">€${(view.total.sum or 0)-(view.coupon_used.sum or 0)-(view.coupon_available.sum or 0)}</td></tr>
 </table>
-<br>
+<hr>
 <div style="float:right;"><a href="new.html">Neue Kartenzuteilung</a></div>
 <h2>Nicht online gekaufte Karten</h2>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
@@ -32,8 +32,16 @@ $for sold, count, s, coupons in view.booked:
             <a href="sold/$sold.id/delete.html">Löschen</a>\
           </td>
         </tr>
+  <tr>
+    <td><b>Summe</b></td>
+    <td align="right"><b><a href="map.pdf?booked_online=1"></a>$sum([(count or 0) for sold, count, s, coupons in view.booked if not sold.online])</b></th>
+    <td align="right"><b>€$sum([(s or 0) for sold, count, s, coupons in view.booked if not sold.online])</b></td>
+    <td align="right"><b>€$sum([(coupons or 0) for sold, count, s, coupons in view.booked if not sold.online])</b></td>
+    <td align="right"><b>€$sum([((s or 0)-(coupons or 0)) for sold, count, s, coupons in view.booked if not sold.online])</b></td>
+    <td>&nbsp;</td>
+  </tr>
 </table>
-<br>
+<hr>
 <h2>Online gekaufte Karten</h2>
 <form method="POST" action="index.html">
   <p>
@@ -77,9 +85,18 @@ $for sold, count, s, coupons in view.booked:
             <a href="sold/$sold.id/delete.html">Löschen</a>
           </td>
         </tr>
+  <tr>
+    <td><b>Summe</b></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td align="right"><b><a href="map.pdf?booked_online=1">$sum([(count or 0) for sold, count, s, coupons in view.booked if sold.online])</a></b></th>
+    <td align="right"><b>€$sum([(s or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
+    <td align="right"><b>€$sum([(coupons or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
+    <td align="right"><b>€$sum([((s or 0)-(coupons or 0)) for sold, count, s, coupons in view.booked if sold.online])</b></td>
+    <td>&nbsp;</td>
+  </tr>
 </table>
-<p>Summe: <a href="map.pdf?booked_online=1">$view.booked_online</a> online gebuchte Karten im Wert von €$sum([s for sold, count, s, coupons in view.booked if sold.online]), davon €$sum([s for sold, count, s, coupons in view.booked if sold.online and not sold.payed]) noch nicht gebucht.</p>
-<br>
+<hr>
 <h2>Druckvorlagen</h2>
 <form action="index.html" method="POST">
 $:view.form.render()

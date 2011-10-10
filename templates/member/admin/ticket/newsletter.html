@@ -19,9 +19,18 @@ $var script:
         $$("#progress_show").hide();
       });
     </script>
-<h1><a href="../../members.html">Chorverwaltung</a>: <a href="tickets.html">Karten</a>: Rundschreiben</h1>
+<h1><a href="../../members.html">Chorverwaltung</a>: <a href="index.html">Karten</a>: Rundschreiben</h1>
 <h2>Informations-E-Mail zum Start des Online-Kartenverkauf</h2>
-<p style="font-style:italic;">$len(newsletters) Empfänger.</p>
+<p style="font-style:italic;">$len(newsletters) Empfänger:
+$for i, newsletter in enumerate(sorted(newsletters, key=lambda x: x.name)):
+    $if i:
+        ,
+    $if newsletter.gender == "female":
+        Frau
+    $else:
+        Herr
+    $newsletter.name ($newsletter.email)\
+.</p>
 <div id="progress_hide">
   <form action="newsletter.html" method="POST" target="progress_frame">
     <input type="submit" name="submit" value="Versenden">

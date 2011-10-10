@@ -1045,22 +1045,22 @@ class member_admin_member_clearpasswd(object):
 class member_admin_member_changes(object):
 
     @with_member_auth(admin_only=True)
-    def GET(self, id=None):
-        query = web.ctx.orm.query(orm.Change).join(orm.Member.changes).join(orm.Instance).filter_by(name=cfg.instance)
-        if id:
-            member = web.ctx.orm.query(orm.Member).filter_by(id=int(id)).join(orm.Instance).filter_by(name=cfg.instance).one()
-            query = query.reset_joinpoint().filter_by(member_id=int(id))
+    def GET(self, member_id=None):
+        query = web.ctx.orm.query(orm.Change).join(orm.Member.changes).join(orm.Instance).filter_by(name=cfg.instance).reset_joinpoint()
+        if member_id:
+            member = web.ctx.orm.query(orm.Member).filter_by(id=int(member_id)).join(orm.Instance).filter_by(name=cfg.instance).one()
+            query = query.filter_by(member_id=int(member_id))
         else:
             member = None
         changes = query.order_by([desc(orm.Change.timestamp)])
         return render.page("/member/admin/member/X/changes.html", render.member.admin.member.changes(changes, member), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
-    def POST(self, id=None):
-        query = web.ctx.orm.query(orm.Change).join(orm.Member.changes).join(orm.Instance).filter_by(name=cfg.instance)
-        if id:
-            query = query.reset_joinpoint().filter_by(member_id=int(id))
-        change = query.filter_by(id=web.input().id).one()
+    def POST(self, member_id=None):
+        query = web.ctx.orm.query(orm.Change).join(orm.Member.changes).join(orm.Instance).filter_by(name=cfg.instance).reset_joinpoint()
+        if member_id:
+            query = query.filter_by(member_id=int(member_id))
+        change = query.filter_by(id=int(web.input().id)).one()
         web.ctx.orm.delete(change)
         raise web.seeother("changes.html")
 # }}} admin members
@@ -1454,7 +1454,6 @@ class member_admin_tickets(object):
                                  .order_by(orm.Sold.id).filter(orm.Sold.tag_id==self.tag.id).all()
         self.booked_sum = web.ctx.orm.query(func.count().label("count"),
                                             func.sum(orm.Ticket.regular).label("sum")).filter(orm.Ticket.tag_id==self.tag.id).filter(orm.Ticket.sold_id!=None).first()
-        self.booked_online = web.ctx.orm.query(orm.Ticket).filter(orm.Ticket.tag_id==self.tag.id).join(orm.Sold).filter_by(online=True).count()
         self.coupon_used = web.ctx.orm.query(func.sum(orm.Coupon.amount).label("sum")).filter(orm.Coupon.tag_id==self.tag.id).filter(orm.Coupon.sold_id!=None).first()
         self.coupon_available = web.ctx.orm.query(func.sum(orm.Coupon.amount).label("sum")).filter(orm.Coupon.tag_id==self.tag.id).filter(orm.Coupon.sold_id==None).first()
 
@@ -1478,7 +1477,14 @@ class member_admin_tickets(object):
         elif self.form.validates():
             mapformat, = [mapformat for mapformat in cfg.mapformats if mapformat.name == self.form.d.mapformat]
 
-            tickets = list(web.ctx.orm.query(orm.Ticket).filter_by(tag_id=self.tag.id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')).order_by(orm.Ticket.id))
+            def safeint(x):
+                try:
+                    return 0, int(x)
+                except ValueError:
+                    return 1, x
+
+            tickets = sorted(web.ctx.orm.query(orm.Ticket).filter_by(tag_id=self.tag.id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')),
+                             key=lambda ticket: (safeint(ticket.block), safeint(ticket.row), safeint(ticket.seat)))
             full_sheets, on_last_page = divmod(len(tickets), mapformat.order)
             sheet = pos = 0
             for ticket in tickets:
@@ -1545,7 +1551,6 @@ class member_admin_ticketmappdf(object):
     def GET(self, tag):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         booked = web.input().get("booked")
-        booked_online = web.input().get("booked_online")
         available = web.input().get("available")
         sold = web.input().get("sold")
         if sold:
@@ -1571,7 +1576,7 @@ class member_admin_ticketmappdf(object):
                     ticket.lum = None
             else:
                 if ticket.wheelchair != 'only' or ticket.sold_id is not None:
-                    if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None) or (booked_online and (ticket.sold_id is None or not ticket.sold.online)):
+                    if (available and ticket.sold_id is not None) or (booked and ticket.sold_id is None):
                         ticket.lum = "light"
                     else:
                         ticket.lum = "strong"
