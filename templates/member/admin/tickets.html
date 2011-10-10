@@ -89,7 +89,7 @@ $for sold, count, s, coupons in view.booked:
     <td><b>Summe</b></td>
     <td>&nbsp;</td>
     <td>&nbsp;</td>
-    <td align="right"><b><a href="map.pdf?booked_online=1">$sum([(count or 0) for sold, count, s, coupons in view.booked if sold.online])</a></b></th>
+    <td align="right"><b>$sum([(count or 0) for sold, count, s, coupons in view.booked if sold.online])</b></th>
     <td align="right"><b>€$sum([(s or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
     <td align="right"><b>€$sum([(coupons or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
     <td align="right"><b>€$sum([((s or 0)-(coupons or 0)) for sold, count, s, coupons in view.booked if sold.online])</b></td>
