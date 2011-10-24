@@ -13,10 +13,11 @@ am besten einen Ausdruck der E-Mail an die Abendkasse): $sold.id/$sold.pickupcod
 ============================================================================
 
 Vielen Dank für Ihren Kartenkauf für das Konzert des Schwäbischen
-Oratorienchors.
+Oratorienchors.\
 $if sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons) > 0:
-     Wir haben Ihre Zahlung erhalten.
+     Wir haben Ihre Zahlung erhalten.\
 \
+
 
 $tag.ticket_title
 
