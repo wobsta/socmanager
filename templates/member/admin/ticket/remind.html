@@ -1,0 +1,14 @@
+$def with (sold, sum)
+<h1><a href="../../../members.html">Chorverwaltung</a>: <a href="../../index.html">Karten</a>: Kartenzuteilung $sold.name</h1>
+<h2>
+  Zahlung von
+  $if sold.gender == 'female':
+      Frau
+  $else:
+      Herrn
+  $sold.name über €$sum steht nach wie vor aus.
+</h2>
+<p>Soll eine Erinnerungs-E-Mail zu dieser Bestellung vom $sold.created.strftime('%d.%m.%Y') versandt werden?</p>
+<form action="remind.html" method="POST">
+<p><input type="submit" name="delete" value="Erinnerungs-E-Mail versenden"></p>
+</form>

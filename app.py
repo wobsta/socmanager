@@ -88,6 +88,7 @@ urls = ("/login.html$", "login",
         "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
         "/member/admin/tickets/(\d+)/sold/(\d+)/pay.html$", "member_admin_tickets_pay",
         "/member/admin/tickets/(\d+)/sold/(\d+)/pickup.html$", "member_admin_tickets_pickup",
+        "/member/admin/tickets/(\d+)/sold/(\d+)/remind.html$", "member_admin_tickets_remind",
         "/member/admin/tickets/(\d+)/sold/(\d+)/delete.html$", "member_admin_tickets_delete",
         "/member/admin/circulars.html$", "member_admin_circulars",
         "/member/admin/circular/copy.html$", "member_admin_circular_copy",
@@ -1944,6 +1945,8 @@ class member_admin_tickets_pay(object):
         sum = 0
         for ticket in sold.tickets:
             sum += ticket.regular
+        for coupon in sold.coupons:
+            sum -= coupon.amount
         return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay(sold, sum), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
@@ -1966,6 +1969,40 @@ class member_admin_tickets_pay(object):
         s.sendmail(cfg.from_email, to_emails, msg.as_string())
         s.close()
         raise web.seeother("../../index.html?pickup=%d" % sold.id)
+
+
+class member_admin_tickets_remind(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        sum = 0
+        for ticket in sold.tickets:
+            sum += ticket.regular
+        for coupon in sold.coupons:
+            sum -= coupon.amount
+        return render.page("/member/admin/link/X/sold/X/remind.html", render.member.admin.ticket.remind(sold, sum), self.member, ticket_sale_open())
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag, sold):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+        web.ctx.orm.commit()
+        s = smtplib.SMTP()
+        s.connect()
+        msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_remind(tag, sold)).encode("utf-8"), _charset="utf-8")
+        msg["Subject"] = "BITTE LESEN: Erinnerung an Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+        msg["From"] = cfg.from_email
+        to_emails = sold.email.split(",")
+        msg["To"] = to_emails[0]
+        if len(to_emails) > 1:
+            msg["Cc"] = ",".join(to_emails[1:])
+        msg["Date"] = email.Utils.formatdate(localtime=True)
+        to_emails.append(cfg.from_email)
+        s.sendmail(cfg.from_email, to_emails, msg.as_string())
+        s.close()
+        raise web.seeother("../../index.html")
 
 # }}} admin tickets
 
