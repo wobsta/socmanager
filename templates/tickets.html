@@ -51,7 +51,6 @@ wieder ab.</p>
   }
   function getZoomFix()
   {
-    if (getInternetExplorerVersion() == 7) {var r = document.body.getBoundingClientRect(); return (r.right-r.left)/document.body.offsetWidth;}
     if (getInternetExplorerVersion() >= 8) {return screen.deviceXDPI / screen.logicalXDPI;}
     return 1;
   }
