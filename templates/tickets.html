@@ -36,11 +36,16 @@ Preiskategorien sind mit unterschiedlichen Farben entsprechend der Legende
 markiert. Bitte wählen Sie Ihre Plätze, indem Sie auf den Plan klicken.
 Ausgewählte Plätze werden schwarz markiert. Erneutes Anklicken wählt die Plätze
 wieder ab.</p>
-<form action="tickets.html#map" method="POST">
-$if failed:
-    <p><input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></p>
-$else:
-    <p><a name="map"><input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height"></a></p>
+<form action="tickets.html#map" method="POST" onsubmit="var b = document.body.getBoundingClientRect();this.zoom.value=(b.right - b.left)/document.body.clientWidth;">
+<p>
+  <input type="hidden" name="zoom" value="1">
+  $if not failed:
+      <a name="map">
+  <input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height">
+  $if not failed:
+      </a>
+</p>
+
 <h2>Ausgewählte Karten</h2>
 $if tickets:
     <ul>

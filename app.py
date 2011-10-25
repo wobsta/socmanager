@@ -332,8 +332,9 @@ class tickets(ticket_form):
         y = web.input().get("map.y")
         clicked = None
         if x and y:
-            x = int(x)
-            y = int(y)
+            zoom = web.input().get("zoom", "1")
+            x = int(float(x)/float(zoom))
+            y = int(float(y)/float(zoom))
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, tag=instance.onsale)
