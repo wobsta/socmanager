@@ -758,13 +758,12 @@ class member_admin_work_on_selection(object):
                           .order_by(orm.Member.instance_order)\
                           .all()
 
-class member_admin_nostatus(member_admin_work_on_selection):
+class member_admin_nostatus(object):
 
     @with_member_auth(admin_only=True)
     def GET(self):
         web.header('Content-Type','text/plain')
-        web.header("Transfer-Encoding", "chunked")
-        yield ""
+        return "no content"
 
 
 # {{{ admin members
