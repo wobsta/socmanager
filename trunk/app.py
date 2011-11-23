@@ -435,7 +435,7 @@ class newsletter(ticket_form):
         newsletter_form = self.newsletter_form()
         if newsletter_form.validates():
             instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
-            web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
+            web.ctx.orm.query(orm.Newsletter).filter_by(email=newsletter_form.d.email).delete()
             orm.Newsletter(newsletter_form.d.gender, newsletter_form.d.name, newsletter_form.d.email, instance)
             return render.page("/newsletter_ok.html", render.newsletter_ok(), self.member, ticket_sale_open())
         return render.page("/newsletter.html", render.newsletter(newsletter_form), self.member, ticket_sale_open())
