@@ -250,6 +250,8 @@ class pages(object):
         org_path = None
         if path in ["page.html", "tickets_pay.html", "tickets_pickup.html"]:
             raise web.NotFound()
+        if path.startswith("press") and not self.member:
+            raise web.seeother("/login.html?%s" % (urllib.urlencode({"next": web.ctx.path})))
         if not path:
             path = "index.html"
         elif path == "press/":
