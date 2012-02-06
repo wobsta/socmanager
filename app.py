@@ -158,7 +158,7 @@ class login(object):
     def GET(self):
         form = LoginForm()
         form.validates()
-        press = form.d.next and form.d.next.startswith("member/wiki/press")
+        press = form.d.next and form.d.next.startswith("/member/wiki/press/")
         return render.page("/login.html", render.login(form, press=press), None, ticket_sale_open())
 
     def POST(self):
