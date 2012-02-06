@@ -54,7 +54,8 @@ urls = ("/login.html$", "login",
         "/tickets.png$", "ticketsmap",
         "/tickets_ok_([^.]+).html$", "tickets_ok",
         "/newsletter.html$", "newsletter",
-        "(/press|/member|/member/photos)$", "add_slash",
+        "(/member|/member/photos)$", "add_slash",
+        "/(press|press/|press/[a-z]+\.html)$", "press_redirect",
         "/member/(index.html|tags.html|privacy.html)?$", "member",
         "/member/data.html$", "member_data",
         "/member/access.html$", "member_access",
@@ -157,7 +158,8 @@ class login(object):
     def GET(self):
         form = LoginForm()
         form.validates()
-        return render.page("/login.html", render.login(form), None, ticket_sale_open())
+        press = form.d.next and form.d.next.startswith("member/wiki/press")
+        return render.page("/login.html", render.login(form, press=press), None, ticket_sale_open())
 
     def POST(self):
         form = LoginForm()
@@ -208,6 +210,15 @@ class add_slash(object):
         raise web.seeother("%s/" % path)
 
 
+class press_redirect(object):
+
+    def GET(self, path):
+        if path in ["press", "press/", "press/index.html"]:
+            raise web.seeother("/press.html")
+        else:
+            raise web.seeother("/login.html?%s" % (urllib.urlencode({"next": "member/wiki/%s" % path[:-5]})))
+
+
 def get_member():
     cookie = web.cookies().get(cfg.cookie, None)
     if cookie:
@@ -247,25 +258,17 @@ class pages(object):
 
     @with_member_info
     def GET(self, path):
-        org_path = None
         if path in ["page.html", "tickets_pay.html", "tickets_pickup.html"]:
             raise web.NotFound()
-        if path.startswith("press") and not self.member:
-            raise web.seeother("/login.html?%s" % (urllib.urlencode({"next": web.ctx.path})))
         if not path:
             path = "index.html"
-        elif path == "press/":
-            path = "press/index.html"
-        elif path == "press.html":
-            path = "press/index.html"
-            org_path = "/press.html"
         if not path.endswith(".html"):
             raise web.NotFound()
         try:
             content = getattr(render, path[:-5])
         except AttributeError:
             raise web.NotFound()
-        return render.page(org_path or "/%s" % path, content(), self.member, ticket_sale_open())
+        return render.page("/%s" % path, content(), self.member, ticket_sale_open())
 
 
 class ticketsmap(object):
