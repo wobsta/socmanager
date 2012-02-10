@@ -1118,7 +1118,7 @@ class member_admin_print(member_admin_work_on_selection):
                 f = open(filename, "w")
                 x = xml.sax.saxutils.XMLGenerator(f, "utf-8")
                 x.startDocument()
-                x.startElement("members", {})
+                x.startElement("members", {"info": form.d.description})
                 x.characters("\n")
                 for merged_members in members_groups:
                     x.startElement("memberGroup", {})
@@ -1159,7 +1159,8 @@ class member_admin_print(member_admin_work_on_selection):
                 f.close()
                 os.system("%s %s %s > %s.result 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", format.xslt), filename, filename[:-4], filename[:-4]))
                 web.header("Content-Type", format.mime)
-                web.header("Content-Disposition", "attachment; filename=\"%s.%s\"" % (cfg.instance, format.extension))
+                if format.extension:
+                    web.header("Content-Disposition", "attachment; filename=\"%s.%s\"" % (cfg.instance, format.extension))
                 f = open(os.path.join(cfg.tmppath, "%s.result" % cfg.instance), "rb")
                 data = f.read()
                 f.close()
