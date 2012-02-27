@@ -1507,30 +1507,59 @@ class member_admin_tickets(object):
                 os.makedirs(cfg.tmppath)
             except OSError:
                 pass
-            filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
-            f = codecs.open(filename, "w", encoding="utf-8")
-            f.write(u"\\documentclass[%s]{%s}\n" % (self.tag.ticketmap_latexname, mapformat.cls.split(".")[0]))
-            f.write(u"\\usepackage[utf8]{inputenc}\n")
-            f.write(u"\\begin{document}%\n")
-            f.write(u"\\socTitle{%s}{%s}%%\n" % (self.tag.ticket_title, self.tag.ticket_description))
-            for ticket in tickets:
-                f.write(u"\\socSeat{%s}{%s}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory))
-            f.write(u"\\socStat%\n")
-            f.write(u"\\end{document}\n")
-            f.close()
-            shutil.copy(os.path.join(path, "formats", mapformat.cls), cfg.tmppath)
-            shutil.copy(os.path.join(path, "formats", "%s.clo" % self.tag.ticketmap_latexname), cfg.tmppath)
-            try:
-                os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
-            except OSError:
-                pass
-            os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
-            f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
-            pdf = f.read()
-            f.close()
-            web.header("Content-Type", "application/pdf")
-            web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
-            return pdf
+            if mapformat.processor == "xml":
+                filename = os.path.join(cfg.tmppath, "%s.xml" % cfg.instance)
+                f = open(filename, "w")
+                x = xml.sax.saxutils.XMLGenerator(f, "utf-8")
+                x.startDocument()
+                x.startElement("tickets", {})
+                x.characters("\n")
+                for ticket in tickets:
+                    x.startElement("ticket", {})
+                    x.characters("\n")
+                    for name in ["block", "row", "seat", "cathegory", "regular"]:
+                        x.startElement(name, {})
+                        x.characters("\n%s\n" % getattr(ticket, name))
+                        x.endElement(name)
+                        x.characters("\n")
+                    x.endElement("ticket")
+                    x.characters("\n")
+                x.endElement("tickets")
+                x.characters("\n")
+                f.close()
+                os.system("%s %s %s > %s.result 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", mapformat.xslt), filename, filename[:-4], filename[:-4]))
+                web.header("Content-Type", mapformat.mime)
+                if mapformat.extension:
+                    web.header("Content-Disposition", "attachment; filename=\"%s.%s\"" % (cfg.instance, mapformat.extension))
+                f = open(os.path.join(cfg.tmppath, "%s.result" % cfg.instance), "rb")
+                data = f.read()
+                f.close()
+                return data
+            else:
+                filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
+                f = codecs.open(filename, "w", encoding="utf-8")
+                f.write(u"\\documentclass[%s]{%s}\n" % (self.tag.ticketmap_latexname, mapformat.cls.split(".")[0]))
+                f.write(u"\\usepackage[utf8]{inputenc}\n")
+                f.write(u"\\begin{document}%\n")
+                f.write(u"\\socTitle{%s}{%s}%%\n" % (self.tag.ticket_title, self.tag.ticket_description))
+                for ticket in tickets:
+                    f.write(u"\\socSeat{%s}{%s}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory))
+                f.write(u"\\socStat%\n")
+                f.write(u"\\end{document}\n")
+                f.close()
+                shutil.copy(os.path.join(path, "formats", mapformat.cls), cfg.tmppath)
+                shutil.copy(os.path.join(path, "formats", "%s.clo" % self.tag.ticketmap_latexname), cfg.tmppath)
+                try:
+                    os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+                except OSError:
+                    pass
+                os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
+                f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
+                pdf = f.read()
+                f.close()
+                web.header("Content-Type", "application/pdf")
+                web.header("Content-Disposition", "attachment; filename=\"%s.pdf\"" % cfg.instance)
+                return pdf
         return render.page("/member/admin/tickets/X/index.html", render.member.admin.tickets(self), self.member, ticket_sale_open())
 
 class member_admin_ticketmappng(object):

@@ -10,10 +10,10 @@
 \ProcessOptions\relax
 \newcommand\socSeat[5]{%
 \begin{picture}(5.25,4.95)
-\put(0,0){\line(1,0){5.25}}
-\put(0,0){\line(0,1){4.95}}
-\put(0,4.95){\line(1,0){5.25}}
-\put(5.25,0){\line(0,1){4.95}}
+%\put(0,0){\line(1,0){5.25}}
+%\put(0,0){\line(0,1){4.95}}
+%\put(0,4.95){\line(1,0){5.25}}
+%\put(5.25,0){\line(0,1){4.95}}
 \put(0,4){\makebox[5.25cm]{\fontsize{15}{15}\selectfont\textbf{#1}}}
 \put(0.9,2.7){\fontsize{15}{15}\selectfont\textbf{Reihe:}}
 \put(4.35,2.5){\makebox[0cm][r]{\fontsize{30}{30}\selectfont\textbf{#2}}}
