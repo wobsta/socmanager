@@ -371,10 +371,10 @@ class tickets(ticket_form):
             s.connect()
             if amount > 0:
                 msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                msg["Subject"] = "Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             else:
                 msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                msg["Subject"] = "Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             to_emails = sold.email.split(",")
             msg["To"] = to_emails[0]
@@ -1776,7 +1776,7 @@ class member_admin_tickets_newsletter(object):
         s.connect()
         for i, newsletter in enumerate(newsletters):
             msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.newsletter_text(tag, newsletter)).encode("utf-8"), _charset="utf-8")
-            msg["Subject"] = "Schwäbischer Oratorienchor: Kartenverkauf gestartet"
+            msg["Subject"] = u"Schwäbischer Oratorienchor: Kartenverkauf gestartet"
             msg["From"] = cfg.from_email
             msg["To"] = newsletter.email
             msg["Date"] = email.Utils.formatdate(localtime=True)
@@ -1993,7 +1993,7 @@ class member_admin_tickets_pay(object):
         s = smtplib.SMTP()
         s.connect()
         msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
-        msg["Subject"] = "Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+        msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
         msg["To"] = to_emails[0]
@@ -2027,7 +2027,7 @@ class member_admin_tickets_remind(object):
         s = smtplib.SMTP()
         s.connect()
         msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_remind(tag, sold)).encode("utf-8"), _charset="utf-8")
-        msg["Subject"] = "BITTE LESEN: Erinnerung an Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+        msg["Subject"] = u"BITTE LESEN: Erinnerung an Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
         msg["To"] = to_emails[0]
