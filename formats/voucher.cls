@@ -31,10 +31,10 @@ auch nutzbar beim Kauf von Karten einer anderen Kategorie\par
 einl\"osbar nur im Vorverkauf w\"ahrend der Chorproben sowie im Online-Kartenverkauf (bis ca. eine Woche vor dem Konzerttermin)\par}
 \vspace{3mm}
 \member@Firstname{} \member@Lastname}}
-\put(0,0){\line(1,0){105}}
-\put(0,0){\line(0,1){49.5}}
-\put(105,49.5){\line(-1,0){105}}
-\put(105,49.5){\line(0,-1){49.5}}
+%\put(0,0){\line(1,0){105}}
+%\put(0,0){\line(0,1){49.5}}
+%\put(105,49.5){\line(-1,0){105}}
+%\put(105,49.5){\line(0,-1){49.5}}
 \end{picture}%
 \hspace{0pt plus 1pt}%
 }
