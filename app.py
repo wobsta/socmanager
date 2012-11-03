@@ -285,10 +285,10 @@ class ticketsmap(object):
         sold = web.input().get("sold")
         if sold:
             sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=instance.onsale.id).one()
-        f = ticketmap(instance.onsale, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
+        i = ticketmap(instance.onsale, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
         web.header("Content-Type", "image/png")
         web.header("Cache-Control", "no-cache, must-revalidate")
-        return f
+        return i
 
 
 class ticket_form(object):
@@ -1433,7 +1433,7 @@ def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
     f = cStringIO.StringIO()
     i.save(f, "png")
     f.seek(0)
-    return f
+    return f.getvalue()
 
 
 MapPrintForm = web.form.Form(web.form.Dropdown("mapformat", [(mapformat.name, mapformat.description)
@@ -1575,10 +1575,10 @@ class member_admin_ticketmappng(object):
         sold = web.input().get("sold")
         if sold:
             sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
-        f = ticketmap(tag, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
+        i = ticketmap(tag, include_wheelchair_only=sold is not None, selected=selected, sold=sold)
         web.header("Content-Type", "image/png")
         web.header("Cache-Control", "no-cache, must-revalidate")
-        return f
+        return i
 
 
 class member_admin_ticketmappdf(object):
