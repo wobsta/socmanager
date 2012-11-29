@@ -41,7 +41,7 @@
   \put(12.4,05.9){Reihe 22}
   \put(12.4,05.4){Reihe 23}
   \put(12.4,04.9){Reihe 24}
-  \put(09.1,18.6){\rotatebox{-90}{Reihe 1}}
+  \put(09.1,21.1){\rotatebox{-90}{Reihe 1}}
   \put(08.1,23.3){\rotatebox{-90}{Reihe 2}}
   \put(07.6,23.3){\rotatebox{-90}{Reihe 3}}
   \put(07.1,26.2){\rotatebox{-90}{Reihe 4}}
