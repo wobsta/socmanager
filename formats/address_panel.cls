@@ -2,6 +2,7 @@
 \LoadClass[DINmtext,pagenumber=off,foldmarks]{scrlttr2}
 \setkomavar{backaddress}{Andr\'e Wobst, Amselweg 22, 85716 Unterschlei\ss heim}
 \setkomavar{date}{}
+\RequirePackage[ngerman]{babel}
 \RequirePackage{helvet,ifthen}
 \renewcommand{\familydefault}{\sfdefault}
 \newbox\memberBox
