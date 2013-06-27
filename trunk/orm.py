@@ -1,5 +1,5 @@
 import datetime, os, hashlib
-import Image
+from PIL import Image
 
 from sqlalchemy import and_
 from sqlalchemy.orm import mapper, relation, backref
