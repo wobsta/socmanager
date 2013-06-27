@@ -1285,7 +1285,7 @@ class member_admin_tag_new(member_admin_tag_form):
     @with_member_auth(admin_only=True)
     def GET(self):
         try:
-            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
+            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in sorted(os.listdir(cfg.photopath))]
         except OSError:
             photopaths = []
         return render.page("/member/admin/tag/new.html", render.member.admin.tag.new(self.form(), photopaths), self.member, ticket_sale_open())
@@ -1339,7 +1339,7 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.ticketmap_latexname.value = tag.ticketmap_latexname
         form.pos.value = str(self.instance.tags.index(tag))
         try:
-            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in os.listdir(cfg.photopath)]
+            photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in sorted(os.listdir(cfg.photopath))]
         except OSError:
             photopaths = []
         return render.page("/member/admin/tag/X/edit.html", render.member.admin.tag.edit(form, photopaths), self.member, ticket_sale_open())
