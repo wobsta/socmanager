@@ -32,7 +32,7 @@ emailPattern = re.compile(r"[a-zA-Z0-9\!\#\$\%\&\\\"\*\=\?\^\'\(\)\|\~\_\-\.\+\/
 import email.Charset, email.MIMEText, email.MIMEMultipart, email.MIMEBase, email.Utils, smtplib
 email.Charset.add_charset("utf-8", email.Charset.SHORTEST, None, None)
 
-import Image, ImageDraw
+from PIL import Image, ImageDraw
 
 try:
     import json
