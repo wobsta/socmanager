@@ -35,6 +35,7 @@ formats = [Storage(processor="tex", name="full", description=u"Komplettliste mit
 from_email = "info@schwaebischer-oratorienchor.de"
 attachments = [Storage(type="PDF Dokument", mime="application/pdf", icon="pdf.png"),
                Storage(type="Google Earth KML Datei", mime="application/vnd.google-earth.kml+xml", icon="kml.png"),
+               Storage(type="iCalendar Datei", mime="text/calendar", icon="ics.png"),
                Storage(type="JPEG Bild", mime="image/jpeg", icon="jpg.png"),
                Storage(type="PNG Bild", mime="image/png", icon="png.png")]
 mid_size = 750
