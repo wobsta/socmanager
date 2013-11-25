@@ -1519,7 +1519,8 @@ class member_admin_tickets(object):
                     x.characters("\n")
                     for name in ["block", "row", "seat", "cathegory", "regular"]:
                         x.startElement(name, {})
-                        x.characters("\n%s\n" % getattr(ticket, name))
+                        if name != "row" or ticket.wheelchair != "only":
+                            x.characters("\n%s\n" % getattr(ticket, name))
                         x.endElement(name)
                         x.characters("\n")
                     x.endElement("ticket")
@@ -1543,7 +1544,10 @@ class member_admin_tickets(object):
                 f.write(u"\\begin{document}%\n")
                 f.write(u"\\socTitle{%s}{%s}%%\n" % (self.tag.ticket_title, self.tag.ticket_description))
                 for ticket in tickets:
-                    f.write(u"\\socSeat{%s}{%s}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory))
+                    if ticket.wheelchair == "only":
+                        f.write(u"\\socSeat{%s}{}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.seat, ticket.cathegory))
+                    else:
+                        f.write(u"\\socSeat{%s}{%s}{%s}{%s}{strong}%%\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory))
                 f.write(u"\\socStat%\n")
                 f.write(u"\\end{document}\n")
                 f.close()
