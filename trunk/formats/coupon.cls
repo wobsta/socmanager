@@ -16,7 +16,7 @@
 \raggedbottom
 \newcommand\socCoupon[2]{%
 \begin{picture}(105,49.5)
-\put(10,35){\parbox[t]{8.5cm}{\raggedright NEU! Dieser Gutschein ist auch online einl\"osbar.\par
+\put(10,35){\parbox[t]{8.5cm}{\raggedright Dieser Gutschein ist auch online einl\"osbar!\par
 \vspace{2mm}
 Online-Gutscheincode: #1\par
 \vspace{2mm}
