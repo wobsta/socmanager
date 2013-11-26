@@ -1201,6 +1201,10 @@ class member_admin_print(member_admin_work_on_selection):
                     os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
                 except OSError:
                     pass
+                try:
+                    os.unlink(os.path.join(cfg.tmppath, "%s.aux" % cfg.instance))
+                except OSError:
+                    pass
                 os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
                 f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
                 pdf = f.read()
@@ -1557,6 +1561,10 @@ class member_admin_tickets(object):
                     os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
                 except OSError:
                     pass
+                try:
+                    os.unlink(os.path.join(cfg.tmppath, "%s.aux" % cfg.instance))
+                except OSError:
+                    pass
                 os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
                 f = open(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance), "rb")
                 pdf = f.read()
@@ -1636,6 +1644,10 @@ class member_admin_ticketmappdf(object):
         shutil.copy(os.path.join(path, "formats", "%s.clo" % tag.ticketmap_latexname), cfg.tmppath)
         try:
             os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+        except OSError:
+            pass
+        try:
+            os.unlink(os.path.join(cfg.tmppath, "%s.aux" % cfg.instance))
         except OSError:
             pass
         os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
@@ -1750,6 +1762,10 @@ class member_admin_tickets_couponspdf(object):
         shutil.copy(os.path.join(path, "formats", "coupon.cls"), cfg.tmppath)
         try:
             os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+        except OSError:
+            pass
+        try:
+            os.unlink(os.path.join(cfg.tmppath, "%s.aux" % cfg.instance))
         except OSError:
             pass
         os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
@@ -1964,6 +1980,10 @@ class member_admin_tickets_pickup(object):
         shutil.copy(os.path.join(path, "formats", "pickup.cls"), cfg.tmppath)
         try:
             os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
+        except OSError:
+            pass
+        try:
+            os.unlink(os.path.join(cfg.tmppath, "%s.aux" % cfg.instance))
         except OSError:
             pass
         os.system("cd %s; %s %s > %s.out 2>&1" % (cfg.tmppath, cfg.pdflatex, filename, filename[:-4]))
