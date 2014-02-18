@@ -950,8 +950,8 @@ class member_admin_member_edit(member_admin_member_form):
         form.birthday_private.checked = member.birthday_private
         form.notes.value = member.note
         form.tags.value = " ".join(tag.name for tag in member.tags)
-        form.messages.value = " ".join(message.access_by and "%s:%s" % (message.circular.name, message.access_by) or message.circular.name
-                                       for message in member.messages)
+        form.messages.value = " ".join(message.access_by and "%s:%s" % (circular.name, message.access_by) or circular.name
+                                       for message, circular in web.ctx.orm.query(orm.Message, orm.Circular).filter_by(member=member).join(orm.Circular).join(orm.Instance).filter_by(name=cfg.instance))
         return render.page("/member/admin/member/X/edit.html", render.member.admin.member.edit(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
 
     @with_member_auth()
