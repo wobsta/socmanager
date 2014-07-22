@@ -1022,8 +1022,6 @@ class member_admin_member_delete(object):
             web.ctx.orm.delete(edit)
         for link in member.links:
             web.ctx.orm.delete(link)
-        for tag in member.tags:
-            web.ctx.orm.delete(tag)
         for message in member.messages:
             web.ctx.orm.delete(message)
         web.ctx.orm.delete(member)
