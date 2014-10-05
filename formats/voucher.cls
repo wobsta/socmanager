@@ -24,7 +24,7 @@ Gutschein f\"ur eine Chor-Freikarte\par
 \vspace{1mm}
 \@info\par
 \vspace{1mm}
-Kategorie B, \EUR{} 18\par
+Kategorie B, \EUR{} 22\par
 \vspace{1mm}
 {\fontsize{8}{9.5}\selectfont\raggedright
 auch nutzbar beim Kauf von Karten einer anderen Kategorie\par
