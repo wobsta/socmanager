@@ -1,0 +1,82 @@
+# socmanager #
+
+Welcome to socmanager, a member management software for a choir. This
+software is used to serve http://www.schwaebischer-oratorienchor.de/.
+It contains both the actual server software and the content of the
+website.
+
+For ease the socmanager repository also contains some third party
+javascript code, namely:
+
+  * jquery, http://jquery.com/
+  * jquery-ui, http://jqueryui.com/
+  * jquery quicksearch, http://www.lomalogue.com/jquery/quicksearch/
+  * jquery timer, http://plugins.jquery.com/project/Timer
+  * jquery scrollTo, http://flesler.blogspot.com/2007/10/jqueryscrollto.html
+  * jquery annotate, http://code.google.com/p/jquery-image-annotate/
+
+The aforementioned packages are **not** part of socmanager and are
+included here for convenience only. socmanager can be run without
+those parts (with some features becoming unavailable).
+
+Some material on the website like figures in the program booklets are
+licensed as stated along with the content.
+
+
+## Requirements ##
+
+At our best knowledge the following infrastructure is required:
+
+  * Python (2.x where x >= 5; on Python 2.5 simplejson is required)
+  * web.py (0.36)
+  * SQLAlchemy (0.x where x >= 5)
+  * PostgreSQL 8.4 or later (`*`) and a database adapter like psycopg2
+  * PIL (for photo management only, any recent version should work, jpeg decoder/encoder required)
+  * pdfLaTeX (for printed matter)
+
+(`*`) PostgreSQL versions 8.3 (and below?) can be used after defining the following aggregate function:
+
+```
+  CREATE AGGREGATE array_agg (anyelement)
+  (
+    sfunc = array_append,
+    stype = anyarray,
+    initcond = '{}'
+  );
+```
+
+## Setup transcript (dev mode on http://localhost:8080) ##
+
+```
+> virtualenv --no-site-packages socmanager
+> cd socmanager
+> . bin/activate
+> easy_install web.py
+> easy_install SQLAlchemy
+> easy_install psycopg2
+> easy_install pil
+> svn checkout http://socmanager.googlecode.com/svn/trunk/ dev
+> cd dev
+> createdb soc
+> python tables.py
+> python orm.py
+> python app.py
+```
+
+## License ##
+
+Note that some files included in this repository are not part of
+socmanager. Read the top of this file for details.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
