@@ -31,6 +31,7 @@ formats = [Storage(processor="tex", name="full", description=u"Komplettliste mit
            Storage(processor="xml", name="kml", description=u"Google Earth Datei (kml)", xslt="kml.xslt", merge="address", mime="application/vnd.google-earth.kml+xml", extension="kml", hide_private=True),
            Storage(processor="xml", name="birthyear", description=u"Anzahl Geburtsjahr in Bereich lt. Beschreibung (txt)", xslt="birthyear.xslt", merge=None, mime="text/plain; charset=utf-8", extension=None, hide_private=False),
            Storage(processor="xml", name="program", description=u"Namensliste für Programmheft (txt)", xslt="program.xslt", merge=None, mime="text/plain; charset=utf-8", extension=None, hide_private=True),
+           Storage(processor="xml", name="chorliste", description=u"tabellarische Chorliste (txt)", xslt="chorliste.xslt", merge=None, mime="text/plain; charset=utf-8", extension=None, hide_private=True),
            Storage(processor="xml", name="order", description=u"Adressliste für Notenbestellung (txt)", xslt="order.xslt", merge="address", mime="text/plain; charset=utf-8", extension=None, hide_private=True)]
 from_email = "info@schwaebischer-oratorienchor.de"
 attachments = [Storage(type="PDF Dokument", mime="application/pdf", icon="pdf.png"),
