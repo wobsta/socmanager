@@ -360,7 +360,7 @@ class tickets(ticket_form):
             if ticket_form.d.coupon:
                 web.ctx.orm.commit()
                 for coupon in ticket_form.d.coupon.split(","):
-                    coupon_id, code = coupon.split("/")
+                    coupon_id, code = coupon.split("-")
                     coupon_id = int(coupon_id)
                     web.ctx.orm.query(orm.Coupon).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
             amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
@@ -384,7 +384,7 @@ class tickets(ticket_form):
             to_emails.append(cfg.from_email)
             s.sendmail(cfg.from_email, to_emails, msg.as_string())
             s.close()
-            raise web.seeother("tickets_ok_%s.html" % hashlib.md5(("/".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest())
+            raise web.seeother("tickets_ok_%s.html" % hashlib.md5(("-".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest())
         else:
             if ticket_form.d.selected:
                 selected = set(map(int, ticket_form.d.selected.split(",")))
@@ -409,7 +409,7 @@ class tickets_ok(object):
     def GET(self, hash):
         printview = web.ctx.method=="POST"
         for sold in web.ctx.orm.query(orm.Sold):
-            if hash == hashlib.md5(("/".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest():
+            if hash == hashlib.md5(("-".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest():
                 amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
                 if amount > 0:
                     content = render.tickets_ok
@@ -474,7 +474,7 @@ def checkemail(i):
 
 
 def checkcoupon(tag, sold=None):
-    coupons = set('%i/%s' % (coupon.id, coupon.code) for coupon in tag.coupons if not coupon.sold_id or (sold and sold == coupon.sold))
+    coupons = set('%i-%s' % (coupon.id, coupon.code) for coupon in tag.coupons if not coupon.sold_id or (sold and sold == coupon.sold))
     def _checkcoupon(i):
         if not i.coupon:
             return True
@@ -1754,7 +1754,7 @@ class member_admin_tickets_couponspdf(object):
         f.write(u"\\usepackage[utf8]{inputenc}\n")
         f.write(u"\\begin{document}%\n")
         for coupon in tag.coupons:
-            f.write(u"\\socCoupon{%i/%s}{%i}%%\n" % (coupon.id, coupon.code, coupon.amount))
+            f.write(u"\\socCoupon{%i-%s}{%i}%%\n" % (coupon.id, coupon.code, coupon.amount))
         f.write(u"\\end{document}\n")
         f.close()
         shutil.copy(os.path.join(path, "formats", "coupon.cls"), cfg.tmppath)
@@ -1848,7 +1848,7 @@ class member_admin_tickets_new(member_admin_ticket_form):
             if form.d.coupon:
                 web.ctx.orm.commit()
                 for coupon in form.d.coupon.split(","):
-                    coupon_id, code = coupon.split("/")
+                    coupon_id, code = coupon.split("-")
                     coupon_id = int(coupon_id)
                     web.ctx.orm.query(orm.Coupon).filter_by(tag_id=tag.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
             raise web.seeother("index.html")
@@ -1876,7 +1876,7 @@ class member_admin_tickets_edit(member_admin_ticket_form):
         form.gender.value = sold.gender
         form.name.value = sold.name
         form.email.value = sold.email
-        form.coupon.value = ", ".join("%i/%s" % (coupon.id, coupon.code) for coupon in sold.coupons)
+        form.coupon.value = ", ".join("%i-%s" % (coupon.id, coupon.code) for coupon in sold.coupons)
         form.online.checked = sold.online
         form.selected.value = ",".join(str(ticket.id) for ticket in sold.tickets)
         return render.page("/member/admin/tickets/X/sold/X/edit.html", render.member.admin.ticket.edit(form, tag, sold), self.member, ticket_sale_open())
@@ -1915,12 +1915,12 @@ class member_admin_tickets_edit(member_admin_ticket_form):
             else:
                 coupons = []
             for coupon in sold.coupons:
-                if "%i/%s" % (coupon.id, coupon.code) in coupons:
-                    coupons.remove("%i/%s" % (coupon.id, coupon.code))
+                if "%i-%s" % (coupon.id, coupon.code) in coupons:
+                    coupons.remove("%i-%s" % (coupon.id, coupon.code))
                 else:
                     coupon.sold_id = None
             for coupon in coupons:
-                coupon_id, code = coupon.split("/")
+                coupon_id, code = coupon.split("-")
                 coupon_id = int(coupon_id)
                 web.ctx.orm.query(orm.Coupon).filter_by(tag_id=tag.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
                 web.ctx.orm.commit()
@@ -1970,7 +1970,7 @@ class member_admin_tickets_pickup(object):
         sum = 0
         for ticket in sold.tickets:
             sum += ticket.regular
-        f.write(u"\\socPickup{%s}{%s}{%s/%s}{%s/%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
+        f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
         for ticket in sold.tickets:
             f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
         f.write(u"\\end{document}\n")
