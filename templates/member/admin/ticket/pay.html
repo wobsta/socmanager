@@ -6,7 +6,7 @@ $def with (sold, sum)
       Frau
   $else:
       Herrn
-  $sold.name über €$sum unter Verwendungszweck $sold.id/$sold.bankcode
+  $sold.name über €$sum unter Verwendungszweck $sold.id-$sold.bankcode
 </h2>
 <p>Achtung: Es wird eine E-Mail mit dem Bestätigungscode verschickt und der Abholschein erstellt.</p>
 <form action="pay.html" method="POST">

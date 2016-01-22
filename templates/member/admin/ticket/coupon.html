@@ -9,7 +9,7 @@ $def with (form, tag, coupons)
 </tr>
 $for coupon in coupons:
     <tr>
-      <td>${coupon.id}/${coupon.code}</th>
+      <td>${coupon.id}-${coupon.code}</th>
       <td>€ $coupon.amount</td>
       <td>
         $if coupon.sold_id:
