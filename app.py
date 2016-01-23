@@ -45,7 +45,28 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import desc
 
-import orm, tables
+import orm, tables, iban
+
+class socRadio(web.form.Radio):
+
+    def render(self):
+        x = '<span>'
+        for arg in self.args:
+            if isinstance(arg, (tuple, list)):
+                value, desc= arg
+            else:
+                value, desc = arg, arg
+            attrs = self.attrs.copy()
+            attrs['name'] = self.name
+            attrs['type'] = 'radio'
+            attrs['value'] = value
+            attrs['id'] += '_' + value
+            if self.value == value:
+                attrs['checked'] = 'checked'
+            x += '<input %s/> <label for="%s">%s</label>' % (attrs, attrs['id'], web.net.websafe(desc))
+        x += '</span>'
+        return x
+
 
 urls = ("/login.html$", "login",
         "/logout.html$", "logout",
@@ -299,9 +320,14 @@ class ticket_form(object):
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
                              web.form.Textbox("coupon", description="Gutschein", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
+                             socRadio("payment", [("banktransfer", u"Überweisung"), ("debit", "Lastschrift")], description="Zahlungsweise"),
+                             web.form.Textbox("account_holder", description="Kontoinhaber", size=50),
+                             web.form.Textbox("account_iban", description="IBAN", size=50),
+                             web.form.Textbox("account_bic", description="BIC", size=50),
                              web.form.Hidden("selected"),
                              web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
+                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount),
                                            web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag))])
 
     def newsletter_form(self):
@@ -342,7 +368,7 @@ class tickets(ticket_form):
             y = int(float(y)/float(zoom))
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
-            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, tag=instance.onsale)
+            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban, account_bic=ticket_form.d.account_bic, tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
@@ -370,8 +396,12 @@ class tickets(ticket_form):
             s = smtplib.SMTP()
             s.connect()
             if amount > 0:
-                msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                if ticket_form.d.payment == 'banktransfer':
+                    msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                    msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                else:
+                    msg = email.MIMEText.MIMEText(unicode(render.tickets_debit(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                    msg["Subject"] = u"Lastschriftmandat und Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             else:
                 msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
                 msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
@@ -412,7 +442,10 @@ class tickets_ok(object):
             if hash == hashlib.md5(("-".join([cfg.secret, str(sold.id), sold.bankcode, sold.pickupcode])).encode("utf-8")).hexdigest():
                 amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
                 if amount > 0:
-                    content = render.tickets_ok
+                    if sold.payment == 'banktransfer':
+                        content = render.tickets_ok
+                    else:
+                        content = render.tickets_debitonline
                 else:
                     content = render.tickets_free
                 return render.page("/tickets_ok_%s.html" % hash, content(sold.tag, sold, printview, hash), self.member, ticket_sale_open(), printview=printview)
@@ -469,6 +502,19 @@ def checkemail(i):
         return True
     for email in i.email.split(","):
         if not emailPattern.match(email):
+            return False
+    return True
+
+
+def checkaccount(i):
+    if i.payment not in ['banktransfer', 'debit']:
+        return False
+    if i.payment == 'debit':
+        if not i.account_holder:
+            return False
+        if not iban.ibanvalid(i.account_iban):
+            return False
+        if len(i.account_bic) not in [8, 11] or i.account_bic[4:6].upper() != i.account_iban[:2].upper():
             return False
     return True
 

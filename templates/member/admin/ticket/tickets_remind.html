@@ -33,7 +33,7 @@ des Schwäbischen Oratorienchors:
   BIC: BYLADEM1AUG
   Name der Bank: Kreissparkasse Augsburg
   Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))
-  Verwendungszweck: PNR $(sold.id)-$sold.bankcode
+  Verwendungszweck: Karten $(sold.id)-$sold.bankcode
 
 Bitte bezahlen Sie die Karten in den nächsten Tagen. Nach Zahlungseingang
 erhalten Sie ein Abholkennwort per E-Mail zugeschickt, mit welchem Sie Ihre

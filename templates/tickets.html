@@ -16,19 +16,29 @@ $else:
     Ermäßigungen. Die Plätze der Kategorie C sind Hörerplätze.</p>
     <p>Wählen Sie im nachfolgenden Plan die Plätze aus, die Sie erwerben wollen.
     Geben Sie im Formular unterhalb des Plans Ihren Namen und eine E-Mail-Adresse
-    ein und bestätigen Sie Ihre Bestellung. Die Plätze sind dann sofort für Sie
-    reserviert. Sie erhalten eine E-Mail mit einer Kontoverbindung, mit der Sie die
-    Karten bitte innerhalb einer Woche und auf jeden Fall aber vor der Aufführung
-    per Überweisung bezahlen. Nach Zahlungseingang erhalten Sie ein
-    Abholkennwort per E-Mail zugeschickt, mit welchem Sie Ihre bezahlten Karten
-    an der Kasse abholen können.</p>
-    <p>Es ist nicht möglich, Karten zu reservieren und erst an der Abendkasse zu
-    bezahlen. Reservierungen ohne Zahlungseingang werden vor Ablauf des Vorverkaufs
-    storniert. Durch die Zahlung per Überweisung und die Abholung der Karten an
-    der Abendkasse können wir auf jegliche Vorverkaufsgebühren verzichten. Leider
-    muss der Vorverkauf deshalb aber ca. eine Woche vor der Aufführung schließen,
-    damit genügend Zeit für die Überweisung bleibt. Nutzen Sie die Gelegenheit und
-    kaufen Sie Ihre Karten frühzeitig!</p>
+    ein. Außerdem müssen Sie angeben, wie Sie die Karten bezahlen.</p>
+    <p>Es stehen zwei Möglichkeiten zur Bezahlung zur Verfügung. Einerseits können die Karten
+    innerhalb von einer Woche nach der Bestellung per Überweisung bezahlt werden.
+    In der Reservierungsbestätigung beim Absenden des Formulars erhalten Sie dazu
+    online und auch per E-Mail die Überweisungsdaten genannt. Bitte beachten Sie,
+    dass es nicht möglich ist, Karten zu reservieren und erst an der Abendkasse zu 
+    bezahlen. Reservierungen mit Zahlung per Überweisung, aber ohne Zahlungseingang,
+    werden vor Ablauf des Vorverkaufs storniert. Zudem ist deshalb ein
+    Kartenkauf mit Bezahlung per Überweisung nur bis ca. zwei Wochen vor der
+    Aufführung möglich.</p>
+    <p>Alternativ können die Karten durch Erteilung eines SEPA-Lastschriftmandats
+    bezahlt werden. Das Mandat für eine einmalige SEPA Basislastschrift wird
+    direkt als Antwort auf Ihre Reservierung erzeugt und online angezeigt sowie
+    per E-Mail übermittelt. Die Zustimmung zur Lastschrift wird mit dem
+    Auslösen des Kartenkaufs mit Auswahl der Lastschrift als Zahlungsmethode
+    vorausgesetzt. Bitte sorgen Sie für ausreichende Kontodeckung, um kostenintensive
+    Rücklastschriften zu vermeiden. Der Kartenkauf mit Lastschrift ist bis zum
+    Tag vor der Aufführung möglich.</p>
+    <p>Nach Zahlungseingang bzw. direkt mit Erteilung eines Lastschriftmandats
+    erhalten Sie ein Abholkennwort per E-Mail zugeschickt, mit welchem Sie Ihre
+    bezahlten Karten an der Kasse abholen können. Durch die Abholung der
+    bezahlten Karten an der Abendkasse können wir auf jegliche Vorverkaufsgebühren
+    verzichten.</p>
 <h2>Sitzplan</h2>
 <p>Die verfügbaren Plätze sind in kräftigen Farben dargestellt, sehr hell
 angedeutet hingegen die Plätze, die bereits vergeben sind. Die verschiedenen
@@ -76,16 +86,25 @@ $else:
     <p>Bisher keine Karten ausgewählt.</p>
 <h2>Persönliche Daten</h2>
 <p>Die nachfolgenden Daten werden benötigt, um Sie hinsichtlich der Überweisung
-und des Abholpassworts zu kontaktieren. Bitte geben Sie deshalb insbesondere
-Ihre E-Mail-Adresse sorgfältig ein. Außerdem haben Sie die Möglichkeit, ein
-Rundschreiben zu bestellen. Wir versenden eine halbjährliche E-Mail jeweils zu
-Beginn des Kartenvorverkaufs für kommende Projekte (selbstverständlich
-ausschließlich für Projekte des Schwäbischen Oratorienchors). In jeder so an
-Sie geschickten E-Mail befindet sich ein Hinweis, wie Sie das Rundschreiben
-wieder abbestellen können. Eine weitergehende Nutzung Ihrer Daten findet nicht
-statt. Der <a href="privacy.html">Schutz Ihrer Daten</a> hat für uns höchste
-Priorität.</p>
+bzw. Lastschriftmandats sowie des Abholpassworts zu kontaktieren. <b>Bitte geben
+Sie deshalb insbesondere Ihre E-Mail-Adresse sorgfältig ein.</b> Außerdem haben
+Sie die Möglichkeit, ein Rundschreiben zu bestellen. Wir versenden eine
+halbjährliche E-Mail jeweils zu Beginn des Kartenvorverkaufs für kommende
+Projekte (selbstverständlich ausschließlich für Projekte des Schwäbischen
+Oratorienchors). In jeder so an Sie geschickten E-Mail befindet sich ein
+Hinweis, wie Sie das Rundschreiben wieder abbestellen können. Eine
+weitergehende Nutzung Ihrer Daten findet nicht statt. Der <a
+href="privacy.html">Schutz Ihrer Daten</a> hat für uns höchste Priorität.</p>
 $:form.render()
 </form>
 <p>Für Rückfragen kontaktieren Sie bitte
 <img src="static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;">.</p>
+<script src="static/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  $$(function() {
+    $$('input[id^="payment_"]').change(function(){
+      $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
+    });
+    $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
+  });
+</script>
