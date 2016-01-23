@@ -63,7 +63,7 @@ class socRadio(web.form.Radio):
             attrs['id'] += '_' + value
             if self.value == value:
                 attrs['checked'] = 'checked'
-            x += '<input %s/> <label for="%s">%s</label>' % (attrs, attrs['id'], web.net.websafe(desc))
+            x += '<input %s/> <label for="%s">%s</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' % (attrs, attrs['id'], web.net.websafe(desc))
         x += '</span>'
         return x
 
