@@ -327,8 +327,8 @@ class ticket_form(object):
                              web.form.Hidden("selected"),
                              web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
-                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount),
-                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag))])
+                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag),
+                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount))])
 
     def newsletter_form(self):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
@@ -392,6 +392,7 @@ class tickets(ticket_form):
             amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
             if amount <= 0:
                 sold.payed = datetime.datetime.now()
+                sold.payment = 'coupon'
             web.ctx.orm.commit()
             s = smtplib.SMTP()
             s.connect()
@@ -506,19 +507,6 @@ def checkemail(i):
     return True
 
 
-def checkaccount(i):
-    if i.payment not in ['banktransfer', 'debit']:
-        return False
-    if i.payment == 'debit':
-        if not i.account_holder:
-            return False
-        if not iban.ibanvalid(i.account_iban):
-            return False
-        if len(i.account_bic) not in [8, 11] or i.account_bic[4:6].upper() != i.account_iban[:2].upper():
-            return False
-    return True
-
-
 def checkcoupon(tag, sold=None):
     coupons = set('%i-%s' % (coupon.id, coupon.code) for coupon in tag.coupons if not coupon.sold_id or (sold and sold == coupon.sold))
     def _checkcoupon(i):
@@ -529,6 +517,28 @@ def checkcoupon(tag, sold=None):
             coupons.remove(coupon)
         return True
     return _checkcoupon
+
+
+def checkaccount(i):
+    instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+    sum, = web.ctx.orm.query(func.sum(orm.Ticket.regular)).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.id.in_(map(int, i.selected.split(",")))).first()
+    for coupon in i.coupon.split(",") if i.coupon else []:
+        coupon_id, code = coupon.split("-")
+        coupon_id = int(coupon_id)
+        amount, = web.ctx.orm.query(orm.Coupon.amount).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).first()
+        sum -= amount
+    if sum <= 0:
+        return True
+    if i.payment not in ['banktransfer', 'debit']:
+        return False
+    if i.payment == 'debit':
+        if not i.account_holder:
+            return False
+        if not iban.ibanvalid(i.account_iban):
+            return False
+        if len(i.account_bic) not in [8, 11] or i.account_bic[4:6].upper() != i.account_iban[:2].upper():
+            return False
+    return True
 
 
 def get_birthday(i):
