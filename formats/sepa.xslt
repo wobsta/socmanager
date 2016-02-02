@@ -46,7 +46,7 @@
         <Id>
           <PrvtId>
             <Othr>
-              <Id>DE95ZZZ0001496812</Id>
+              <Id>DE95ZZZ00001496812</Id>
               <SchmeNm>
                 <Prtry>SEPA</Prtry>
               </SchmeNm>

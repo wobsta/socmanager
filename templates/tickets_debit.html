@@ -28,7 +28,7 @@ $for ticket in sold.tickets:
 Die Bezahlung erfolgt durch folgendes SEPA-Lastschriftmandat für eine einmalige
 SEPA-Basislastschrift:
 
-  Gläubiger-ID des Schwäbischen Oratorienchor e.V.: DE95ZZZ0001496812
+  Gläubiger-ID des Schwäbischen Oratorienchor e.V.: DE95ZZZ00001496812
   Mandatsreferenz: $(sold.id)-$sold.bankcode
   Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))
 
