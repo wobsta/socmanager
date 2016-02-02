@@ -369,7 +369,7 @@ class tickets(ticket_form):
             y = int(float(y)/float(zoom))
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
-            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban, account_bic=ticket_form.d.account_bic, tag=instance.onsale)
+            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic, tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
