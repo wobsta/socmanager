@@ -403,7 +403,7 @@ class tickets(ticket_form):
                     msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
                 else:
                     msg = email.MIMEText.MIMEText(unicode(render.tickets_debit(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                    msg["Subject"] = u"Lastschriftmandat und Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                    msg["Subject"] = u"Abholkennwort und Lastschriftmandat für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             else:
                 msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
                 msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
