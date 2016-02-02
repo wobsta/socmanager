@@ -12,7 +12,7 @@
 \newcommand\socPickup[8]{
 {\fontsize{24pt}{30pt}\selectfont\bfseries Abholkennwort: #4\hfill\hfill\ifthenelse{\equal{#5}{payed}}{bezahlt}{nicht bezahlt}\par}
 \ifthenelse{\equal{#1}{female}}{Frau}{Herr} #2\hfill{\fontsize{24pt}{30pt}\selectfont\bfseries \EUR #8\par}
-Überweisungskennwort (Verwendungszweck): #3\par
+Zahlungskennzeichen: #3\par
 \vspace{1cm}
 #6\par
 #7\par
