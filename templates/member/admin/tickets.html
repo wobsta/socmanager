@@ -69,12 +69,22 @@ $for sold, count, s, coupons in view.booked:
             $sold.id-$sold.bankcode
           </td>
           <td>
-            $if sold.payed:
-                $sold.payed.strftime('%d.%m.%Y'),
+            $if sold.payment == 'coupon':
+                per Gutschein,
                 $sold.id-$sold.pickupcode
+            $elif sold.payment == 'debit':
+                $if sold.payed:
+                    $sold.payed.strftime('%d.%m.%Y'),
+                    $sold.id-$sold.pickupcode
+                $else:
+                    Lastschrift steht aus
             $else:
-                <a href="sold/$sold.id/pay.html">Zahlungseingang&nbsp;buchen</a>,
-                <a href="sold/$sold.id/remind.html">Erinnerung&nbsp;verschicken</a>
+                $if sold.payed:
+                    $sold.payed.strftime('%d.%m.%Y'),
+                    $sold.id-$sold.pickupcode
+                $else:
+                    <a href="sold/$sold.id/pay.html">Zahlungseingang&nbsp;buchen</a>,
+                    <a href="sold/$sold.id/remind.html">Erinnerung&nbsp;verschicken</a>
           </td>
           <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
           <td align="right">€$s</td>
@@ -111,6 +121,11 @@ $for sold, count, s, coupons in view.booked:
     <td>&nbsp;</td>
   </tr>
 </table>
+<hr>
+<h2>Sammellastschrift</h2>
+<form action="debit.html" method="GET">
+  <input type=submit value="Lastschrift auslösen">
+</form>
 <hr>
 <h2>Druckvorlagen</h2>
 <form action="index.html" method="POST">

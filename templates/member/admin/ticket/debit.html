@@ -1,0 +1,36 @@
+$def with (open_debit)
+<h1><a href="../../members.html">Chorverwaltung</a>: <a href="index.html">Karten</a>: Sammellastschrift</h1>
+<h2>
+  Lastschriften
+</h2>
+<form action="debit.html" method="POST">
+<table id="list" cellspacing="0" cellpadding="0" border="0">
+  <tr><th>Auswahl</th><th>Name</th><th>Reservierung</th><th>Bezahlung</th><th>Anzahl</th><th>Wert</th><th>Gutscheine</th><th>Einnahmen</th></tr>
+$for sold in open_debit:
+      <tr>
+        <td><input type="checkbox" name="selection" value="$sold.id"
+          $if not sold.payed:
+              checked
+        ></td>
+        <td>$sold.name</td>
+        <td>
+            $sold.created.strftime('%d.%m.%Y'),
+            $sold.id-$sold.bankcode
+        </td>
+        <td>
+            $if sold.payed:
+                $sold.payed.strftime('%d.%m.%Y'),
+                $sold.id-$sold.pickupcode
+            $else:
+                Lastschrift steht aus
+        </td>
+        <td align="right"><a href="map.pdf?sold=$sold.id">${sum(1 for ticket in sold.tickets)}</a></td>
+        <td align="right">${sum(ticket.regular for ticket in sold.tickets)}</td>
+        <td align="right">${sum(coupon.amount for coupon in sold.coupons)}</td>
+        <td align="right">${sum(ticket.regular for ticket in sold.tickets) - sum(coupon.amount for coupon in sold.coupons)}</td>
+      </tr>
+</table>
+<p><input type="submit" name="make_debit" value="Sammellastschrift erstellen"></p>
+<p><input type="submit" name="make_pickup" value="Abholscheine erstellen"></p>
+<p><input type="submit" name="book_debit" value="Sammellastschrift einbuchen"></p>
+</form>

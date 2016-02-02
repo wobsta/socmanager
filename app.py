@@ -109,9 +109,10 @@ urls = ("/login.html$", "login",
         "/member/admin/tickets/(\d+)/new.html$", "member_admin_tickets_new",
         "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
         "/member/admin/tickets/(\d+)/sold/(\d+)/pay.html$", "member_admin_tickets_pay",
-        "/member/admin/tickets/(\d+)/sold/(\d+)/pickup.html$", "member_admin_tickets_pickup",
+        "/member/admin/tickets/(\d+)/sold/([\d,]+)/pickup.html$", "member_admin_tickets_pickup",
         "/member/admin/tickets/(\d+)/sold/(\d+)/remind.html$", "member_admin_tickets_remind",
         "/member/admin/tickets/(\d+)/sold/(\d+)/delete.html$", "member_admin_tickets_delete",
+        "/member/admin/tickets/(\d+)/debit.html$", "member_admin_tickets_debit",
         "/member/admin/circulars.html$", "member_admin_circulars",
         "/member/admin/circular/copy.html$", "member_admin_circular_copy",
         "/member/admin/circular/new.html$", "member_admin_circular_new",
@@ -1896,7 +1897,7 @@ class member_admin_tickets_new(member_admin_ticket_form):
             y = int(y)
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=tag.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if form.validates() and x is None and y is None:
-            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, online=web.input().has_key("online"), tag=tag)
+            sold = orm.Sold(gender=form.d.gender, name=form.d.name, email=form.d.email, online=web.input().has_key("online"), tag=tag, payment='banktransfer' if web.input().has_key("online") else '')
             if form.d.selected:
                 web.ctx.orm.commit()
                 for ticket_id in set(map(int, form.d.selected.split(","))):
@@ -2015,20 +2016,22 @@ class member_admin_tickets_delete(object):
 class member_admin_tickets_pickup(object):
 
     @with_member_auth(admin_only=True)
-    def GET(self, tag, sold):
+    def GET(self, tag, solds):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
         filename = os.path.join(cfg.tmppath, "%s.tex" % cfg.instance)
         f = codecs.open(filename, "w", encoding="utf-8")
         f.write(u"\\documentclass{pickup}\n")
         f.write(u"\\usepackage[utf8]{inputenc}\n")
         f.write(u"\\begin{document}\n")
-        sum = 0
-        for ticket in sold.tickets:
-            sum += ticket.regular
-        f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
-        for ticket in sold.tickets:
-            f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
+        for sold in solds.split(','):
+            sold = web.ctx.orm.query(orm.Sold).filter_by(id=int(sold)).filter_by(tag_id=tag.id).one()
+            sum = 0
+            for ticket in sold.tickets:
+                sum += ticket.regular
+            f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
+            for ticket in sold.tickets:
+                f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
+            f.write(u"\\clearpage\n")
         f.write(u"\\end{document}\n")
         f.close()
         shutil.copy(os.path.join(path, "formats", "pickup.cls"), cfg.tmppath)
@@ -2116,6 +2119,83 @@ class member_admin_tickets_remind(object):
         s.sendmail(cfg.from_email, to_emails, msg.as_string())
         s.close()
         raise web.seeother("../../index.html")
+
+
+class member_admin_tickets_debit(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        debits = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).filter_by(payment='debit').all()
+        return render.page("/member/admin/tickets/X/debit.html", render.member.admin.ticket.debit(debits), self.member, ticket_sale_open())
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        debits = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).filter_by(payment='debit').filter(orm.Sold.id.in_(web.input(selection=[]).get("selection"))).all()
+        if web.input().get("make_pickup") is not None:
+            raise web.seeother("sold/%s/pickup.html" % ','.join(map(str, [sold.id for sold in debits])))
+        if web.input().get("make_debit") is not None:
+            debits = list(debits)
+            filename = os.path.join(cfg.tmppath, "%s.xml" % cfg.instance)
+            f = open(filename, "w")
+            x = xml.sax.saxutils.XMLGenerator(f, "utf-8")
+            x.startDocument()
+            x.startElement("debits", {})
+            x.characters("\n")
+            total = 0
+            for debit in debits:
+                x.startElement("debit", {})
+                x.characters("\n")
+                for name in ["id", "bankcode", "account_holder", "account_iban", "account_bic"]:
+                    x.startElement(name, {})
+                    x.characters("%s" % debit.__dict__[name])
+                    x.endElement(name)
+                    x.characters("\n")
+                x.startElement("amount", {})
+                amount = sum(ticket.regular for ticket in debit.tickets) - sum(coupon.amount for coupon in debit.coupons)
+                x.characters("%d" % amount)
+                total += amount
+                x.endElement("amount")
+                x.characters("\n")
+                x.startElement("date", {})
+                x.characters("%s" % debit.created.strftime('%Y-%m-%d'))
+                x.endElement("date")
+                x.characters("\n")
+                x.endElement("debit")
+                x.characters("\n")
+            x.startElement("count", {})
+            x.characters("%d" % len(debits))
+            x.endElement("count")
+            x.characters("\n")
+            x.startElement("total", {})
+            x.characters("%d" % total)
+            x.endElement("total")
+            x.characters("\n")
+            x.startElement("now", {})
+            x.characters(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
+            x.endElement("now")
+            x.characters("\n")
+            x.startElement("now_plus_ten", {})
+            x.characters((datetime.datetime.now()+datetime.timedelta(10)).strftime('%Y-%m-%d'))
+            x.endElement("now_plus_ten")
+            x.characters("\n")
+            x.endElement("debits")
+            x.characters("\n")
+            f.close()
+            os.system("%s %s %s > %s.result 2> %s.err" % (cfg.xsltproc, os.path.join(path, "formats", "sepa.xslt"), filename, filename[:-4], filename[:-4]))
+            web.header("Content-Type", "text/xml")
+            web.header("Content-Disposition", "attachment; filename=\"%s.xml\"" % cfg.instance)
+            f = open(os.path.join(cfg.tmppath, "%s.result" % cfg.instance), "rb")
+            data = f.read()
+            f.close()
+            return data
+        else:
+            assert web.input().get("book_debit") is not None
+            for debit in debits:
+                debit.payed = datetime.datetime.now()
+            debits = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).filter_by(payment='debit').all()
+            return render.page("/member/admin/tickets/X/debit.html", render.member.admin.ticket.debit(debits), self.member, ticket_sale_open())
 
 # }}} admin tickets
 

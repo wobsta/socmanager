@@ -177,7 +177,6 @@ sold_table = Table("sold", metadata,
                    Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
                    Column("created", DateTime, default=datetime.datetime.now, nullable=False),
                    Column("payed", DateTime),
-                   Column("emit_debit", DateTime),
                    CheckConstraint("gender in ('female', 'male')"))
 
 coupon_table = Table("coupon", metadata,
