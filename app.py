@@ -315,13 +315,13 @@ class ticketsmap(object):
 
 class ticket_form(object):
 
-    def ticket_form(self, tag):
+    def ticket_form(self, tag, banktransfer):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
                              web.form.Textbox("coupon", description="Gutschein", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
-                             socRadio("payment", [("banktransfer", u"Überweisung"), ("debit", "Lastschrift")], description="Zahlungsweise"),
+                             socRadio("payment", ([("banktransfer", u"Überweisung")] if banktransfer else []) + [("debit", "Lastschrift")], description="Zahlungsweise"),
                              web.form.Textbox("account_holder", description="Kontoinhaber", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
@@ -348,7 +348,9 @@ class tickets(ticket_form):
             return render.page("/tickets.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
         if instance.sale_temporarily_closed:
             return render.page("/tickets.html", render.tickets_closed(), self.member, ticket_sale_open())
-        ticket_form = self.ticket_form(instance.onsale)
+        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible)
+        if not instance.bank_transfer_possible:
+            ticket_form.payment.value = 'debit'
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member, ticket_sale_open())
 
     @with_member_info
@@ -359,7 +361,7 @@ class tickets(ticket_form):
             return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
         if instance.sale_temporarily_closed:
             return render.page("/tickets_closed.html", render.tickets_closed(), self.member, ticket_sale_open())
-        ticket_form = self.ticket_form(instance.onsale)
+        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible)
         x = web.input().get("map.x")
         y = web.input().get("map.y")
         clicked = None
@@ -1540,6 +1542,10 @@ class member_admin_tickets(object):
             self.instance.sale_temporarily_closed = False
         elif web.input().get("action_close"):
             self.instance.sale_temporarily_closed = True
+        elif web.input().get("action_bank_transfer_enable"):
+            self.instance.bank_transfer_possible = True
+        elif web.input().get("action_bank_transfer_disable"):
+            self.instance.bank_transfer_possible = False
         elif self.form.validates():
             mapformat, = [mapformat for mapformat in cfg.mapformats if mapformat.name == self.form.d.mapformat]
 

@@ -15,6 +15,7 @@ instance_table = Table("instance", metadata,
                        Column("name", Unicode, unique=True, nullable=False),
                        Column("onsale_id", Integer, ForeignKey("tag.id")),
                        Column("sale_temporarily_closed", Boolean),
+                       Column("bank_transfer_possible", Boolean),
                        Column("description", Unicode))
 
 member_table = Table("member", metadata,

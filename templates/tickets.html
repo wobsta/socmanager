@@ -13,32 +13,51 @@ $else:
     <p>Auf dieser Seite können Sie Karten für die kommende Aufführung des
     Schwäbischen Oratorienchors erwerben. Es werden ausschließlich Platzkarten in
     den Kategorien A, B und C zu €28, €22 und €12 angeboten. Es gibt keine
-    Ermäßigungen. Die Plätze der Kategorie C sind Hörerplätze.</p>
+    Ermäßigungen. Die Plätze der Kategorie C sind Hörerplätze.
+    $if not tag.instance.bank_transfer_possible:
+      Es ist sehr empfehlenswert, vom Kartenvorverkauf gebraucht zu machen, um
+      sich frühzeitig einen guten Platz zu sichern. <b>An der Abendkasse gibt
+      es aber immer noch Karten zu kaufen.</b> Bei Bedarf werden zusätzliche
+      Stühle aufgestellt. Es ist nicht möglich, Karten zu reservieren und erst
+      an der Abendkasse zu bezahlen.</p>
     <p>Wählen Sie im nachfolgenden Plan die Plätze aus, die Sie erwerben wollen.
     Geben Sie im Formular unterhalb des Plans Ihren Namen und eine E-Mail-Adresse
-    ein. Außerdem müssen Sie angeben, wie Sie die Karten bezahlen.</p>
-    <p>Es stehen zwei Möglichkeiten zur Bezahlung zur Verfügung. Einerseits können die Karten
-    innerhalb von einer Woche nach der Bestellung per Überweisung bezahlt werden.
-    In der Reservierungsbestätigung beim Absenden des Formulars erhalten Sie dazu
-    online und auch per E-Mail die Überweisungsdaten genannt. Bitte beachten Sie,
-    dass es nicht möglich ist, Karten zu reservieren und erst an der Abendkasse zu 
-    bezahlen. Reservierungen mit Zahlung per Überweisung, aber ohne Zahlungseingang,
-    werden vor Ablauf des Vorverkaufs storniert. Zudem ist deshalb ein
-    Kartenkauf mit Bezahlung per Überweisung nur bis ca. zwei Wochen vor der
-    Aufführung möglich.</p>
-    <p>Alternativ können die Karten durch Erteilung eines SEPA-Lastschriftmandats
+    ein.
+    $if tag.instance.bank_transfer_possible:
+        Außerdem müssen Sie angeben, wie Sie die Karten bezahlen.
+    $else:
+        Es ist nicht möglich, Karten zu reservieren und erst an der Abendkasse zu bezahlen.
+    </p>
+    $if tag.instance.bank_transfer_possible:
+        <p>Es stehen zwei Möglichkeiten zur Bezahlung zur Verfügung. Einerseits können die Karten
+        innerhalb von einer Woche nach der Bestellung per Überweisung bezahlt werden.
+        In der Reservierungsbestätigung beim Absenden des Formulars erhalten Sie dazu
+        online und auch per E-Mail die Überweisungsdaten genannt. Bitte beachten Sie,
+        dass es nicht möglich ist, Karten zu reservieren und erst an der Abendkasse zu 
+        bezahlen. Reservierungen mit Zahlung per Überweisung, aber ohne Zahlungseingang,
+        werden vor Ablauf des Vorverkaufs storniert. Zudem ist deshalb ein
+        Kartenkauf mit Bezahlung per Überweisung nur bis ca. zwei Wochen vor der
+        Aufführung möglich.</p>
+        <p>Alternativ können die Karten durch Erteilung eines SEPA-Lastschriftmandats
+    $else:
+        <p>Die Karten können durch Erteilung eines SEPA-Lastschriftmandats
     bezahlt werden. Das Mandat für eine einmalige SEPA Basislastschrift wird
     direkt als Antwort auf Ihre Reservierung erzeugt und online angezeigt sowie
     per E-Mail übermittelt. Die Zustimmung zur Lastschrift wird mit dem
     Auslösen des Kartenkaufs mit Auswahl der Lastschrift als Zahlungsmethode
     vorausgesetzt. Bitte sorgen Sie für ausreichende Kontodeckung, um kostenintensive
-    Rücklastschriften zu vermeiden. Der Kartenkauf mit Lastschrift ist bis zum
-    Tag vor der Aufführung möglich.</p>
-    <p>Nach Zahlungseingang bzw. direkt mit Erteilung eines Lastschriftmandats
-    erhalten Sie ein Abholkennwort per E-Mail zugeschickt, mit welchem Sie Ihre
-    bezahlten Karten an der Kasse abholen können. Durch die Abholung der
-    bezahlten Karten an der Abendkasse können wir auf jegliche Vorverkaufsgebühren
-    verzichten.</p>
+    Rücklastschriften zu vermeiden. Der Kartenkauf mit Lastschrift ist in der
+    Regel bis zum Tag vor der Aufführung möglich.</p>
+    $if tag.instance.bank_transfer_possible:
+        <p>Nach Zahlungseingang bzw. direkt mit Erteilung eines Lastschriftmandats
+    $else:
+        <p>Direkt mit Erteilung eines Lastschriftmandats
+    erhalten Sie ein Abholkennwort
+    $if tag.instance.bank_transfer_possible:
+        per E-Mail zugeschickt bzw.
+    online angezeigt, mit welchem Sie Ihre bezahlten Karten an der Kasse
+    abholen können. Durch die Abholung der bezahlten Karten an der Abendkasse
+    können wir auf jegliche Vorverkaufsgebühren verzichten.</p>
 <h2>Sitzplan</h2>
 <p>Die verfügbaren Plätze sind in kräftigen Farben dargestellt, sehr hell
 angedeutet hingegen die Plätze, die bereits vergeben sind. Die verschiedenen

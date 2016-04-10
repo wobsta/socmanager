@@ -54,6 +54,12 @@ $if view.instance.onsale == view.tag:
     $else:
         Der Verkauf ist geöffnet,
         <input type="submit" name="action_close" value="Verkauf vorübergehend schließen"> (wegen Vorverkauf bei der Chorprobe).
+        $if view.instance.bank_transfer_possible:
+            Zahlung per Überweisung ist <b>möglich</b>,
+            <input type="submit" name="action_bank_transfer_disable" value="abschalten">.
+        $else:
+            Zahlung per Überweisung ist <b>nicht möglich</b>,
+            <input type="submit" name="action_bank_transfer_enable" value="anschalten">.
 $else:
     <b>nicht aktiv</b>, <input type="submit" name="action_activate" value="aktivieren">.
   </p>
