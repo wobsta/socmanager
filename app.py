@@ -2132,7 +2132,7 @@ class member_admin_tickets_debit(object):
     @with_member_auth(admin_only=True)
     def GET(self, tag):
         tag = web.ctx.orm.query(orm.Tag).filter_by(id=int(tag)).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        debits = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).filter_by(payment='debit').all()
+        debits = web.ctx.orm.query(orm.Sold).filter_by(tag_id=tag.id).filter_by(payment='debit').order_by(orm.Sold.id).all()
         return render.page("/member/admin/tickets/X/debit.html", render.member.admin.ticket.debit(debits), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
