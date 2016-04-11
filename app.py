@@ -328,8 +328,8 @@ class ticket_form(object):
                              web.form.Hidden("selected"),
                              web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
-                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag),
-                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount))])
+                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag)),
+                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount)])
 
     def newsletter_form(self):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
