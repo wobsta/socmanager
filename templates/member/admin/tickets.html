@@ -60,6 +60,12 @@ $if view.instance.onsale == view.tag:
         $else:
             Zahlung per Überweisung ist <b>nicht möglich</b>,
             <input type="submit" name="action_bank_transfer_enable" value="anschalten">.
+        $if view.instance.shipment_possible:
+            Versand der Tickets ist <b>möglich</b>,
+            <input type="submit" name="action_shipment_disable" value="abschalten">.
+        $else:
+            Versand der Tickets ist <b>nicht möglich</b>,
+            <input type="submit" name="action_shipment_enable" value="anschalten">.
 $else:
     <b>nicht aktiv</b>, <input type="submit" name="action_activate" value="aktivieren">.
   </p>

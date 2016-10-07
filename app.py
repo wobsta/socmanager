@@ -325,11 +325,18 @@ class ticket_form(object):
                              web.form.Textbox("account_holder", description="Kontoinhaber", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
+                             web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
+                             web.form.Textbox("shipment_firstname", description="Vorname", size=50),
+                             web.form.Textbox("shipment_surname", description="Nachname", size=50),
+                             web.form.Textbox("shipment_street", description="Straße und Nr.", size=50),
+                             web.form.Textbox("shipment_zip", description="PLZ", size=50),
+                             web.form.Textbox("shipment_city", description="Ort", size=50),
                              web.form.Hidden("selected"),
                              web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
                                            web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag)),
-                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount)])
+                                           web.form.Validator("Ungültige Zahlungsangaben.", checkaccount),
+                                           web.form.Validator("Ungültige Versandangaben.", checkshipment)])
 
     def newsletter_form(self):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
@@ -371,7 +378,7 @@ class tickets(ticket_form):
             y = int(float(y)/float(zoom))
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
-            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic, tag=instance.onsale)
+            sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic, tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
@@ -393,6 +400,8 @@ class tickets(ticket_form):
                     coupon_id = int(coupon_id)
                     web.ctx.orm.query(orm.Coupon).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
             amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
+            if sold.shipment:
+                amount += 1
             if amount <= 0:
                 sold.payed = datetime.datetime.now()
                 sold.payment = 'coupon'
@@ -401,14 +410,26 @@ class tickets(ticket_form):
             s.connect()
             if amount > 0:
                 if ticket_form.d.payment == 'banktransfer':
-                    msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                    if sold.shipment:
+                        msg = email.MIMEText.MIMEText(unicode(render.tickets_pay_shipment(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                        msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                    else:
+                        msg = email.MIMEText.MIMEText(unicode(render.tickets_pay(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                        msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                else:
+                    if sold.shipment:
+                        msg = email.MIMEText.MIMEText(unicode(render.tickets_debit_shipment(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                        msg["Subject"] = u"Lastschriftmandat für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                    else:
+                        msg = email.MIMEText.MIMEText(unicode(render.tickets_debit(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                        msg["Subject"] = u"Abholkennwort und Lastschriftmandat für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+            else:
+                if sold.shipment:
+                    msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed_shipment(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
                     msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
                 else:
-                    msg = email.MIMEText.MIMEText(unicode(render.tickets_debit(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                    msg["Subject"] = u"Abholkennwort und Lastschriftmandat für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
-            else:
-                msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
-                msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+                    msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(instance.onsale, sold)).encode("utf-8"), _charset="utf-8")
+                    msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             to_emails = sold.email.split(",")
             msg["To"] = to_emails[0]
@@ -447,11 +468,20 @@ class tickets_ok(object):
                 amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
                 if amount > 0:
                     if sold.payment == 'banktransfer':
-                        content = render.tickets_ok
+                        if sold.shipment:
+                            content = render.tickets_ok_shipment
+                        else:
+                            content = render.tickets_ok
                     else:
-                        content = render.tickets_debitonline
+                        if sold.shipment:
+                            content = render.tickets_debitonline_shipment
+                        else:
+                            content = render.tickets_debitonline
                 else:
-                    content = render.tickets_free
+                    if sold.shipment:
+                        content = render.tickets_free_shipment
+                    else:
+                        content = render.tickets_free
                 return render.page("/tickets_ok_%s.html" % hash, content(sold.tag, sold, printview, hash), self.member, ticket_sale_open(), printview=printview)
         raise web.NotFound()
 
@@ -530,6 +560,8 @@ def checkaccount(i):
         coupon_id = int(coupon_id)
         amount, = web.ctx.orm.query(orm.Coupon.amount).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).first()
         sum -= amount
+    if web.input().has_key("with_shipment"):
+        sum += 1
     if sum <= 0:
         return True
     if i.payment not in ['banktransfer', 'debit']:
@@ -543,6 +575,11 @@ def checkaccount(i):
             return False
     return True
 
+def checkshipment(i):
+    if web.input().has_key("with_shipment"):
+        if not i.shipment_firstname or not i.shipment_surname or not i.shipment_street or not i.shipment_zip or not i.shipment_city:
+            return False
+    return True
 
 def get_birthday(i):
     if not i.birthday:
@@ -1546,6 +1583,10 @@ class member_admin_tickets(object):
             self.instance.bank_transfer_possible = True
         elif web.input().get("action_bank_transfer_disable"):
             self.instance.bank_transfer_possible = False
+        elif web.input().get("action_shipment_enable"):
+            self.instance.shipment_possible = True
+        elif web.input().get("action_shipment_disable"):
+            self.instance.shipment_possible = False
         elif self.form.validates():
             mapformat, = [mapformat for mapformat in cfg.mapformats if mapformat.name == self.form.d.mapformat]
 
@@ -2034,7 +2075,10 @@ class member_admin_tickets_pickup(object):
             sum = 0
             for ticket in sold.tickets:
                 sum += ticket.regular
-            f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
+            if sold.shipment:
+                f.write(u"\\socShipment{%s}{%s}{%s}{%s}{%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, tag.ticket_title, tag.ticket_description, sold.shipment_firstname, sold.shipment_surname, sold.shipment_street, sold.shipment_zip, sold.shipment_city))
+            else:
+                f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
             for ticket in sold.tickets:
                 f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
             f.write(u"\\clearpage\n")
@@ -2069,6 +2113,10 @@ class member_admin_tickets_pay(object):
             sum += ticket.regular
         for coupon in sold.coupons:
             sum -= coupon.amount
+        if sold.shipment:
+            sum += 1
+        if sold.shipment:
+            return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay_shipment(sold, sum), self.member, ticket_sale_open())
         return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay(sold, sum), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
@@ -2079,7 +2127,10 @@ class member_admin_tickets_pay(object):
         web.ctx.orm.commit()
         s = smtplib.SMTP()
         s.connect()
-        msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
+        if sold.shipment:
+            msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed_shipment(tag, sold)).encode("utf-8"), _charset="utf-8")
+        else:
+            msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
         msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
@@ -2113,7 +2164,10 @@ class member_admin_tickets_remind(object):
         web.ctx.orm.commit()
         s = smtplib.SMTP()
         s.connect()
-        msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_remind(tag, sold)).encode("utf-8"), _charset="utf-8")
+        if sold.shipment:
+            msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_remind_shipment(tag, sold)).encode("utf-8"), _charset="utf-8")
+        else:
+            msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_remind(tag, sold)).encode("utf-8"), _charset="utf-8")
         msg["Subject"] = u"BITTE LESEN: Erinnerung an Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
@@ -2160,6 +2214,8 @@ class member_admin_tickets_debit(object):
                     x.characters("\n")
                 x.startElement("amount", {})
                 amount = sum(ticket.regular for ticket in debit.tickets) - sum(coupon.amount for coupon in debit.coupons)
+                if debit.shipment:
+                    amount += 1
                 x.characters("%d" % amount)
                 total += amount
                 x.endElement("amount")

@@ -58,6 +58,10 @@ $else:
     online angezeigt, mit welchem Sie Ihre bezahlten Karten an der Kasse
     abholen können. Durch die Abholung der bezahlten Karten an der Abendkasse
     können wir auf jegliche Vorverkaufsgebühren verzichten.</p>
+    $if tag.instance.shipment_possible:
+        <p>Alternativ können Sie sich Ihre Karten für nur 1 €
+        Versandkostenpauschale auch zuschicken lassen. Diese Option steht nur
+        bis ca. zwei Wochen vor der Aufführung zur Verfügung.</p>
 <h2>Sitzplan</h2>
 <p>Die verfügbaren Plätze sind in kräftigen Farben dargestellt, sehr hell
 angedeutet hingegen die Plätze, die bereits vergeben sind. Die verschiedenen
@@ -100,7 +104,10 @@ $if tickets:
       $for ticket in tickets:
           <li>$ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, €$ticket.regular)</li>
     </ul>
-    <p>Gesamtpreis: €$(sum(ticket.regular for ticket in tickets))</p>
+    <p>Gesamtpreis: €$(sum(ticket.regular for ticket in tickets))
+    $if tag.instance.shipment_possible:
+        (zzgl. €1 Versandkosten, falls im Formular unten ausgewählt)
+    </p>
 $else:
     <p>Bisher keine Karten ausgewählt.</p>
 <h2>Persönliche Daten</h2>
@@ -125,5 +132,9 @@ $:form.render()
       $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
     });
     $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
+    $$('input[id="with_shipment_yes"]').change(function(){
+      $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
+    });
+    $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
   });
 </script>

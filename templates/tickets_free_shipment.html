@@ -1,0 +1,18 @@
+$def with (tag, sold, printview, hash)
+$if printview:
+    <form action="tickets_ok_${hash}.html" method="GET"><div style="float:right;"><input type="submit" name="submit" value="zur Normalansicht"></div></form>
+$else:
+    <form action="tickets_ok_${hash}.html" method="POST"><div style="float:right;"><input type="submit" name="submit" value="zur Druckansicht"></div></form>
+<h1>Kartenverkauf</h1>
+<h2>$tag.ticket_title</h2>
+<h3>$tag.ticket_description</h3>
+<p>Vielen Dank für das Gutschein-Einlösen für das Konzert des Schwäbischen Oratorienchors.</p>
+<p>Folgende Karten erhalten Sie in den nächsten Tagen per Post zugesandt:</p>
+<ul>
+  $for ticket in sold.tickets:
+      <li>$ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, €$ticket.regular)</li>
+</ul>
+<p>Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und freuen
+uns darauf, Sie als unsere Gäste begrüßen zu dürfen!</p>
+<p>Für Rückfragen kontaktieren Sie bitte
+<img src="static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;">.</p>

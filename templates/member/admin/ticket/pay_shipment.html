@@ -1,0 +1,14 @@
+$def with (sold, sum)
+<h1><a href="../../../members.html">Chorverwaltung</a>: <a href="../../index.html">Karten</a>: Kartenzuteilung $sold.name buchen</h1>
+<h2>
+  Zahlung von
+  $if sold.gender == 'female':
+      Frau
+  $else:
+      Herrn
+  $sold.name über €$sum unter Verwendungszweck $sold.id-$sold.bankcode
+</h2>
+<p>Achtung: Es wird eine E-Mail mit dem Bestätigungscode verschickt und der Versandschein erstellt.</p>
+<form action="pay.html" method="POST">
+<p><input type="submit" name="delete" value="Zahlung ist eingegangen, Zahlung buchen!"></p>
+</form>
