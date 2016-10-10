@@ -7,8 +7,8 @@
 \newcommand\socPickup[8]{
 \AddToShipoutPicture*{
   \setlength\unitlength{1cm}%
-  \put(0,9.9){\line(1,0){21}}
-  \put(0,19.8){\line(1,0){21}}
+  \put(0,10){\line(1,0){21}}
+  \put(0,20){\line(1,0){21}}
 }%
 {\fontsize{24pt}{30pt}\selectfont\bfseries Abholkennwort: #4\hfill\hfill\ifthenelse{\equal{#5}{payed}}{bezahlt}{nicht bezahlt}\par}
 \ifthenelse{\equal{#1}{female}}{Frau}{Herr} #2\hfill{\fontsize{24pt}{30pt}\selectfont\bfseries \EUR #8\par}
