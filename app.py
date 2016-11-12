@@ -315,7 +315,7 @@ class ticketsmap(object):
 
 class ticket_form(object):
 
-    def ticket_form(self, tag, banktransfer):
+    def ticket_form(self, tag, banktransfer, shipment):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
@@ -325,14 +325,16 @@ class ticket_form(object):
                              web.form.Textbox("account_holder", description="Kontoinhaber", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
-                             web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
-                             web.form.Textbox("shipment_firstname", description="Vorname", size=50),
-                             web.form.Textbox("shipment_surname", description="Nachname", size=50),
-                             web.form.Textbox("shipment_street", description="Straße und Nr.", size=50),
-                             web.form.Textbox("shipment_zip", description="PLZ", size=50),
-                             web.form.Textbox("shipment_city", description="Ort", size=50),
-                             web.form.Hidden("selected"),
-                             web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
+                             *(([web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
+                                 web.form.Textbox("shipment_firstname", description="Vorname", size=50),
+                                 web.form.Textbox("shipment_surname", description="Nachname", size=50),
+                                 web.form.Textbox("shipment_street", description="Straße und Nr.", size=50),
+                                 web.form.Textbox("shipment_zip", description="PLZ", size=50),
+                                 web.form.Textbox("shipment_city", description="Ort", size=50)] if shipment else []
+                                ) + [
+                                 web.form.Hidden("selected"),
+                                 web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
+                                ]),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
                                            web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag)),
                                            web.form.Validator("Ungültige Zahlungsangaben.", checkaccount),
@@ -355,7 +357,7 @@ class tickets(ticket_form):
             return render.page("/tickets.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
         if instance.sale_temporarily_closed:
             return render.page("/tickets.html", render.tickets_closed(), self.member, ticket_sale_open())
-        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible)
+        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible, instance.shipment_possible)
         if not instance.bank_transfer_possible:
             ticket_form.payment.value = 'debit'
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member, ticket_sale_open())
@@ -368,7 +370,7 @@ class tickets(ticket_form):
             return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
         if instance.sale_temporarily_closed:
             return render.page("/tickets_closed.html", render.tickets_closed(), self.member, ticket_sale_open())
-        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible)
+        ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible, instance.shipment_possible)
         x = web.input().get("map.x")
         y = web.input().get("map.y")
         clicked = None
