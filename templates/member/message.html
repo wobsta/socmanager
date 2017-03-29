@@ -3,7 +3,7 @@ $if printview:
     <form action="show.html" method="GET"><div style="float:right;"><input type="submit" name="submit" value="zur Normalansicht"></div></form>
 $else:
     <form action="show.html" method="POST"><div style="float:right;"><input type="submit" name="submit" value="zur Druckansicht"></div></form>
-$:(message.circular.html % {"firstname": member.firstname, "lastname": member.lastname})
+$:(message.circular.html % {"firstname": member.firstname, "lastname": member.lastname, "salutation": member.salutation})
 $if message.circular.attachments:
     <table cellpadding="10" border="0">
       <tr>

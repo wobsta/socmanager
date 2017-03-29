@@ -48,6 +48,14 @@ class Member(object):
         s += "\ntags=%s" % " ".join(tag.name for tag in self.tags)
         return s
 
+    @property
+    def salutation(self):
+        if self.gender == 'female':
+            return 'Liebe %s' % self.firstname
+        elif self.gender == 'male':
+            return 'Lieber %s' % self.firstname
+        return 'Liebe/r %s' % self.firstname
+
 
 class Change(object):
 

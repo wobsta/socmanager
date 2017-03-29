@@ -2709,7 +2709,7 @@ class member_admin_link_email(member_admin_work_on_selection):
             circular = session.query(orm.Circular).filter_by(id=int(form.d.circular)).join(orm.Instance).filter_by(name=cfg.instance).one()
             for i, member in enumerate(members):
                 link = web.ctx.orm.query(orm.Link).join(orm.Entrance).filter_by(id=entrance.id).join(orm.Member).filter_by(id=member.id).one()
-                body = circular.email % {"firstname": member.firstname, "lastname": member.lastname, "uuid": link.uuid}
+                body = circular.email % {"firstname": member.firstname, "firstname": member.firstname, "salutation": member.salutation, "uuid": link.uuid}
                 if not circular.attachments:
                     msg = email.MIMEText.MIMEText(body.encode("utf-8"), _charset="utf-8")
                 else:
