@@ -16,12 +16,14 @@
 \raggedbottom
 \newcommand\socCoupon[2]{%
 \begin{picture}(105,49.5)
-\put(10,35){\parbox[t]{8.5cm}{\raggedright Dieser Gutschein ist auch online einl\"osbar!\par
+\put(10,35){\parbox[t]{8.5cm}{\raggedright Dieser Gutschein ist online einl\"osbar!\par
 \vspace{2mm}
 Online-Gutscheincode: #1\par
 \vspace{2mm}
 \fontsize{8}{9.5}\selectfont
 Hinweis: Mehrere Gutscheine k\"onnen gleichzeitig eingel\"ost werden, indem man mehrere Gutscheincodes mit Komma getrennt in das Gutscheinfeld eintr\"agt.\par
+\vspace{2mm}
+\textbf{einl\"osbar nur im Vorverkauf, nicht an der Abendkasse}
 }}
 \end{picture}%
 \hspace{0pt plus 1pt}%

@@ -28,7 +28,7 @@ Kategorie B, \EUR{} 22\par
 \vspace{1mm}
 {\fontsize{8}{9.5}\selectfont\raggedright
 auch nutzbar beim Kauf von Karten einer anderen Kategorie\par
-einl\"osbar nur im Vorverkauf w\"ahrend der Chorproben sowie im Online-Kartenverkauf (bis ca. eine Woche vor dem Konzerttermin)\par}
+einl\"osbar \textbf{nur im Vorverkauf} w\"ahrend der Chorproben sowie im Online-Kartenverkauf, aber \textbf{nicht an der Abendkasse}\par}
 \vspace{3mm}
 \member@Firstname{} \member@Lastname}}
 %\put(0,0){\line(1,0){105}}
