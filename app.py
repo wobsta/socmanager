@@ -886,7 +886,7 @@ class member_admin_members(member_admin_work_on_selection):
         form = self.form()
         for member in self.members():
             form["member_%i" % member.id].checked = True
-        inaktiv_ids = set(id for id, in web.ctx.orm.query(orm.Member.id).join(tables.member_tag_table).join(orm.Tag).filter_by(name=u"inaktiv"))
+        inaktiv_ids = set(member.id for member in web.ctx.orm.query(orm.Tag).filter_by(name=u"inaktiv").one().members)
         return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form, inaktiv_ids), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
@@ -930,7 +930,7 @@ class member_admin_members(member_admin_work_on_selection):
                     raise web.seeother("circulars.html?selection=%s" % members)
                 elif web.input().get("links"):
                     raise web.seeother("links.html?selection=%s" % members)
-        inaktiv_ids = set(id for id, in web.ctx.orm.query(orm.Member.id).join(tables.member_tag_table).join(orm.Tag).filter_by(name=u"inaktiv"))
+        inaktiv_ids = set(member.id for member in web.ctx.orm.query(orm.Tag).filter_by(name=u"inaktiv").one().members)
         return render.page("/member/admin/members.html", render.member.admin.members(self.instance, form, inaktiv_ids), self.member, ticket_sale_open())
 
 
