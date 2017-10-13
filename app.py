@@ -1296,6 +1296,9 @@ class member_admin_print(member_admin_work_on_selection):
                 f.write(u"\\end{document}\n")
                 f.close()
                 shutil.copy(os.path.join(path, "formats", format.cls), cfg.tmppath)
+                if hasattr(format, 'files'):
+                    for file in format.files:
+                        shutil.copy(os.path.join(path, "formats", file), cfg.tmppath)
                 try:
                     os.unlink(os.path.join(cfg.tmppath, "%s.pdf" % cfg.instance))
                 except OSError:
@@ -1814,7 +1817,7 @@ class member_admin_tickets_map(object):
                 f.write(form.d.background)
                 f.seek(0)
                 i = Image.open(f)
-                tag.ticketmap = i.tostring()
+                tag.ticketmap = i.tobytes()
                 tag.ticketmap_width, tag.ticketmap_height = i.size
             if form.d.seats:
                 xml.sax.parseString(form.d.seats, SeatLoadHandler(tag))
