@@ -381,9 +381,9 @@ class tickets(ticket_form):
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             if instance.shipment_possible:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic, tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
             else:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic, tag=instance.onsale)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
@@ -576,7 +576,7 @@ def checkaccount(i):
             return False
         if not iban.ibanvalid(i.account_iban):
             return False
-        if len(i.account_bic) not in [8, 11] or i.account_bic[4:6].upper() != i.account_iban[:2].upper():
+        if len(i.account_bic.strip()) not in [8, 11] or i.account_bic.strip()[4:6].upper() != i.account_iban.strip()[:2].upper():
             return False
     return True
 
