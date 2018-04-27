@@ -1,4 +1,4 @@
-$def with (form, tag, tickets, failed=False)
+$def with (form, tag, tickets, failed=False, formerror=False)
 <h1>Kartenverkauf</h1>
 <h2>$tag.ticket_title</h2>
 <h3>$tag.ticket_description</h3>
@@ -9,6 +9,8 @@ $if failed:
     gebucht wurden. Ihre Auswahl musste deshalb leider verworfen werden. Bitte
     entschuldigen Sie die Unannehmlichkeiten und suchen Sie sich neue Plätze
     aus.</p>
+$elif formerror:
+    <h1 style="color:#933;">ACHTUNG: Die Buchung konnte noch nicht ausgeführt werden, da sich Fehler im Formular unten befinden!!!</h1>
 $else:
     <p>Auf dieser Seite können Sie Karten für die kommende Aufführung des
     Schwäbischen Oratorienchors erwerben. Es werden ausschließlich Platzkarten in
@@ -91,10 +93,10 @@ wieder ab.</p>
 <form action="tickets.html#map" method="POST" onsubmit="this.zoom.value = getZoomFix();">
 <p>
   <input type="hidden" name="zoom" value="1">
-  $if not failed:
+  $if not failed and not formerror:
       <a name="map">
   <input type="image" name="map" src="tickets.png?selected=$form.d.selected" width="$tag.ticketmap_width" height="$tag.ticketmap_height">
-  $if not failed:
+  $if not failed and not formerror:
       </a>
 </p>
 

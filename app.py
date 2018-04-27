@@ -460,7 +460,7 @@ class tickets(ticket_form):
             tickets = [web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter_by(id=ticket_id).first()
                        for ticket_id in selected]
             ticket_form.selected.value = ",".join(map(str, selected))
-            return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, tickets), self.member, ticket_sale_open())
+            return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, tickets, formerror=x is None and y is None), self.member, ticket_sale_open())
 
 
 class tickets_ok(object):
