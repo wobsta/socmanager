@@ -49,7 +49,7 @@ $for photo in tag.photos:
             <td style="padding:20px 0px;" align="center" width="150">
         $else:
             <td style="padding:20px 0px 20px 50px;" align="center" width="150">
-        <a href="index.html?photo=$photo.name"><img alt="$photo.name" src="$photo.name?type=thumb" width="$photo.thumbwidth" height="$photo.thumbheight" border="0"></a><br><a href="index.html?photo=$photo.name">$photo.name</a></td>
+        <a href="index.html?photo=$photo.name.replace('+', '%2B')"><img alt="$photo.name" src="$photo.name?type=thumb" width="$photo.thumbwidth" height="$photo.thumbheight" border="0"></a><br><a href="index.html?photo=$photo.name.replace('+', '%2B')">$photo.name</a></td>
         $if loop.index0 % 4 == 3:
             </tr>
             $ has_slash_tr = True
