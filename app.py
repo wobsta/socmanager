@@ -106,6 +106,7 @@ urls = ("/login.html$", "login",
         "/member/admin/tickets/(\d+)/coupon.html$", "member_admin_tickets_coupon",
         "/member/admin/tickets/(\d+)/coupons.pdf$", "member_admin_tickets_couponspdf",
         "/member/admin/tickets/(\d+)/newsletter.html$", "member_admin_tickets_newsletter",
+        "/member/admin/tickets/(\d+)/clean.html$", "member_admin_tickets_clean",
         "/member/admin/tickets/(\d+)/new.html$", "member_admin_tickets_new",
         "/member/admin/tickets/(\d+)/sold/(\d+)/edit.html$", "member_admin_tickets_edit",
         "/member/admin/tickets/(\d+)/sold/(\d+)/pay.html$", "member_admin_tickets_pay",
@@ -1916,6 +1917,23 @@ class member_admin_tickets_newsletter(object):
         s.close()
         yield "complete.\n"
         session.close()
+
+
+class member_admin_tickets_clean(object):
+
+    @with_member_auth(admin_only=True)
+    def GET(self, tag):
+        return render.page("/member/admin/tickets/X/clean.html", render.member.admin.ticket.clean(), self.member, ticket_sale_open())
+
+    @with_member_auth(admin_only=True)
+    def POST(self, tag):
+        web.ctx.orm.query(orm.Sold).filter(orm.Sold.tag_id==tag).update(dict(account_holder='', account_iban='', account_bic='',
+                                                                             name='', email='', shipment_firstname='', shipment_surname='',
+                                                                             shipment_street='', shipment_zip='', shipment_city='', gender='female'))
+        for coupon in web.ctx.orm.query(orm.Coupon).filter(orm.Coupon.tag_id==tag).filter(orm.Coupon.sold_id==None).all():
+            web.ctx.orm.delete(coupon)
+        web.ctx.orm.commit()
+        raise web.seeother("index.html")
 
 
 class member_admin_ticket_form(object):
