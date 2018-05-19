@@ -12,7 +12,7 @@ $for tag, count, labeled, names in tags:
             $else:
                 $labeled beschriftete Photos:
             $for name in sorted(names.split(",")):
-                <a href="photos/$tag.name/index.html?photo=$name">$name.replace('+', '%2B')</a>$("," if not loop.last else "")
+                <a href="photos/$tag.name/index.html?photo=$name.replace('+', '%2B')">$name</a>$("," if not loop.last else "")
           </p>
     </dd>
 </dl>
