@@ -45,6 +45,6 @@ $def paginator():
 $:paginator()
 $ has_slash_tr = True
 <p style="text-align:center;"><img id="photo" alt="$photo.name" src="$photo.name.replace('+', '%2B')?type=mid" width="$photo.midwidth" height="$photo.midheight" border="0"></p>
-<p style="text-align:center;"><a href="$photo.name">$photo.name.replace('+', '%2B')</a> ($("%.1f" % (photo.size/1024.0/1024)) MB)</p>
+<p style="text-align:center;"><a href="$photo.name.replace('+', '%2B')">$photo.name</a> ($("%.1f" % (photo.size/1024.0/1024)) MB)</p>
 $:paginator()
 <p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>
