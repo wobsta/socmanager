@@ -8,9 +8,9 @@ $if photo.allow_labels:
         <script language="javascript">
           $$(window).load(function() {
             $$("#photo").annotateImage({
-              getUrl: "labels.html?photo=$photo.name&action=get",
-              saveUrl: "labels.html?photo=$photo.name&action=save",
-              deleteUrl: "labels.html?photo=$photo.name&action=delete",
+              getUrl: "labels.html?photo=$photo.name.replace('+', '%2B')&action=get",
+              saveUrl: "labels.html?photo=$photo.name.replace('+', '%2B')&action=save",
+              deleteUrl: "labels.html?photo=$photo.name.replace('+', '%2B')&action=delete",
               editable: true
             });
           });
@@ -24,7 +24,7 @@ $def paginator():
         <td align="left">
           $ i = photo.tag.photos.index(photo)
           $if i:
-              <a href="index.html?photo=$photo.tag.photos[i-1].name">vorheriges Photo</a>
+              <a href="index.html?photo=$photo.tag.photos[i-1].name.replace('+', '%2B')">vorheriges Photo</a>
           $else:
               <span style="color:white;">vorheriges Photo</span>
         </td>
@@ -36,7 +36,7 @@ $def paginator():
         </td>
         <td align="right">
           $if i < len(photo.tag.photos)-1:
-              <a href="index.html?photo=$photo.tag.photos[i+1].name">nächstes Photo</a>
+              <a href="index.html?photo=$photo.tag.photos[i+1].name.replace('+', '%2B')">nächstes Photo</a>
           $else:
               <span style="color:white;">nächstes Photo</span>
         </td>
@@ -44,7 +44,7 @@ $def paginator():
     </table>
 $:paginator()
 $ has_slash_tr = True
-<p style="text-align:center;"><img id="photo" alt="$photo.name" src="$photo.name?type=mid" width="$photo.midwidth" height="$photo.midheight" border="0"></p>
-<p style="text-align:center;"><a href="$photo.name">$photo.name</a> ($("%.1f" % (photo.size/1024.0/1024)) MB)</p>
+<p style="text-align:center;"><img id="photo" alt="$photo.name" src="$photo.name.replace('+', '%2B')?type=mid" width="$photo.midwidth" height="$photo.midheight" border="0"></p>
+<p style="text-align:center;"><a href="$photo.name">$photo.name.replace('+', '%2B')</a> ($("%.1f" % (photo.size/1024.0/1024)) MB)</p>
 $:paginator()
 <p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>
