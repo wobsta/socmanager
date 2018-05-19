@@ -1927,7 +1927,7 @@ class member_admin_tickets_clean(object):
 
     @with_member_auth(admin_only=True)
     def POST(self, tag):
-        web.ctx.orm.query(orm.Sold).filter(orm.Sold.tag_id==tag).update(dict(account_holder='', account_iban='', account_bic='',
+        web.ctx.orm.query(orm.Sold).filter(orm.Sold.tag_id==tag).filter(orm.Sold.online==True).update(dict(account_holder='', account_iban='', account_bic='',
                                                                              name='', email='', shipment_firstname='', shipment_surname='',
                                                                              shipment_street='', shipment_zip='', shipment_city='', gender='female'))
         for coupon in web.ctx.orm.query(orm.Coupon).filter(orm.Coupon.tag_id==tag).filter(orm.Coupon.sold_id==None).all():
