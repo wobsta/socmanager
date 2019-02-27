@@ -149,6 +149,7 @@ def load_sqla(handler):
     return result
 
 
+web.config.debug = False
 app = web.application(urls, locals())
 app.add_processor(load_sqla)
 
