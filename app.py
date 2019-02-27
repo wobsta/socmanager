@@ -149,6 +149,7 @@ def load_sqla(handler):
     return result
 
 
+web.config.debug = False
 app = web.application(urls, locals())
 app.add_processor(load_sqla)
 
@@ -528,8 +529,8 @@ class member(object):
         if not path:
             path = "index.html"
         if path == "index.html":
-            new_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by == None).order_by([orm.Circular.instance_order]).all()
-            old_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by != None).order_by([orm.Circular.instance_order]).all()
+            new_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by == None).order_by(orm.Circular.instance_order).all()
+            old_circulars = web.ctx.orm.query(orm.Circular).join(orm.Message).filter_by(member_id=self.member.id).filter(orm.Message.access_by != None).order_by(orm.Circular.instance_order).all()
             return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member, new_circulars, old_circulars), self.member, ticket_sale_open())
         else:
             return render.page("/member/%s" % path, getattr(render.member, path[:-5])(self.member), self.member, ticket_sale_open())
