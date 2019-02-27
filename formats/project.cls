@@ -15,7 +15,7 @@
 \fancyfoot[R]{http://www.schwaebischer-oratorienchor.de/}
 \raggedbottom
 \setlength\parindent{0mm}
-\setlength\parskip{2.5mm}
+\setlength\parskip{2mm}
 \setlength\columnsep{5mm}
 \newcounter{memberCount}
 \newenvironment{members}{\begin{multicols}{2}}{\end{multicols}}
