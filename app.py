@@ -2156,9 +2156,10 @@ class member_admin_tickets_pay(object):
         s.connect()
         if sold.shipment:
             msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed_shipment(tag, sold)).encode("utf-8"), _charset="utf-8")
+            msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         else:
             msg = email.MIMEText.MIMEText(unicode(render.member.admin.ticket.tickets_payed(tag, sold)).encode("utf-8"), _charset="utf-8")
-        msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+            msg["Subject"] = u"Abholkennwort für Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
         msg["From"] = cfg.from_email
         to_emails = sold.email.split(",")
         msg["To"] = to_emails[0]
