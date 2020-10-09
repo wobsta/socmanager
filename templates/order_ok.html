@@ -1,0 +1,23 @@
+$def with (tag, data)
+<h1>Kartenverkauf</h1>
+<h2>$tag.ticket_title</h2>
+<h3>$tag.ticket_description</h3>
+<p>Vielen Dank für Ihre Kartenbestellung für das Konzert des Schwäbischen
+Oratorienchors. Die Bestellungen werden zu gegebener Zeit in der Reihenfolge
+des Eingangs bearbeitet und die Platzierung unter Berücksichtigung der
+Corona-Auflagen vorgenommen. Sollten hierbei Rückfragen notwendig sein, werden
+Sie nochmals kontaktiert. Ansonsten erhalten Sie dann die Bestätigung mit
+Nennung Ihrer Plätze (per E-Mail) und Zusendung der Karten (per Post). Auch die
+Lastschrift zur Zahlung wird erst zu diesem Zeitpunkt initiiert.</p>
+<p>Eine Zusammenfassung der Daten zu Ihrer Bestellung, die Ihnen soeben auch
+per E-Mail zugeht:</p>
+<table>
+<tr><th align=right>Vor- und Nachname:</th><td>$data.firstname $data.surname</td></tr>
+<tr><th align=right>Straße und Nr.:</th><td>$data.street</td></tr>
+<tr><th align=right>PLZ und Ort:</th><td>$data.zip $data.city</td></tr>
+<tr><th align=right>Anzahl Karten:</th><td>$data.count Stück in Kategorie $data.category.upper()</td></tr>
+</table>
+<p>Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und
+freuen uns darauf, Sie als unsere Gäste begrüßen zu dürfen!</p>
+<p>Für Rückfragen kontaktieren Sie bitte
+<img src="static/email.png" width=260 height=13 style="position:relative;top:2px;left:1px;">.</p>

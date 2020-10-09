@@ -71,6 +71,7 @@ class socRadio(web.form.Radio):
 urls = ("/login.html$", "login",
         "/logout.html$", "logout",
         "/link.html$", "link",
+        "/order.html$", "order",
         "/tickets.html$", "tickets",
         "/tickets.png$", "ticketsmap",
         "/tickets_ok_([^.]+).html$", "tickets_ok",
@@ -295,6 +296,82 @@ class pages(object):
         return render.page("/%s" % path, content(), self.member, ticket_sale_open())
 
 
+class order_form(object):
+
+    def order_form(self, tag):
+        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
+                             web.form.Textbox("firstname", notnull, description="Vorname", size=50),
+                             web.form.Textbox("surname", notnull, description="Nachname", size=50),
+                             web.form.Textbox("street", notnull, description="Straße und Nr.", size=50),
+                             web.form.Textbox("zip", notnull, description="PLZ", size=50),
+                             web.form.Textbox("city", notnull, description="Ort", size=50),
+                             web.form.Textbox("phone", description="Telefon (optional)", size=50),
+                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
+                             web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
+                             web.form.Textbox("account_iban", notnull, description="IBAN", size=50),
+                             web.form.Textbox("account_bic", notnull, description="BIC", size=50),
+                             web.form.Dropdown("category", [("a", "A (32 Euro)"), ("B", "B (24 Euro)"), ("C", "C (12 Euro, Hörerplatz)")], description="Kategorie"),
+                             web.form.Textbox("count", formint, description="Anzahl an Karten", size=50),
+                             web.form.Textbox("coupon", description="Gutschein (optional)", size=50),
+                             web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
+                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
+                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag)),
+                                           web.form.Validator("Ungültige Zahlungsangaben.", alwayscheckaccount)])
+
+    def newsletter_form(self):
+        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
+                             web.form.Textbox("name", notnull, description=u"Nachname", size=50),
+                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
+                             web.form.Button("submit", type="submit", html=u"Rundschreiben abonnieren"),
+                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
+
+class order(order_form):
+
+    @with_member_info
+    def GET(self):
+        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        if not instance.onsale:
+            newsletter_form = self.newsletter_form()
+            return render.page("/order.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
+        if instance.sale_temporarily_closed:
+            return render.page("/order.html", render.tickets_closed(), self.member, ticket_sale_open())
+        order_form = self.order_form(instance.onsale)
+        return render.page("/order.html", render.order(order_form, instance.onsale), self.member, ticket_sale_open())
+
+    @with_member_info
+    def POST(self):
+        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
+        if not instance.onsale:
+            newsletter_form = self.newsletter_form()
+            return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
+        if instance.sale_temporarily_closed:
+            return render.page("/tickets_closed.html", render.tickets_closed(), self.member, ticket_sale_open())
+        order_form = self.order_form(instance.onsale)
+        if order_form.validates():
+            s = smtplib.SMTP()
+            s.connect()
+            msg = email.MIMEText.MIMEText(unicode(render.order_email(instance.onsale, order_form.d)).encode("utf-8"), _charset="utf-8")
+            msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
+            msg["From"] = cfg.from_email
+            to_emails = order_form.d.email.split(",")
+            msg["To"] = to_emails[0]
+            if len(to_emails) > 1:
+                msg["Cc"] = ",".join(to_emails[1:])
+            msg["Date"] = email.Utils.formatdate(localtime=True)
+            to_emails.append(cfg.from_email)
+            s.sendmail(cfg.from_email, to_emails, msg.as_string())
+            msg = email.MIMEText.MIMEText(unicode(render.order_email_internal(instance.onsale, order_form.d)).encode("utf-8"), _charset="utf-8")
+            msg["Subject"] = u"Bestelldetails zur Kartenbestellung für den Schwäbischen Oratorienchor"
+            msg["From"] = cfg.from_email
+            msg["To"] = cfg.from_email
+            msg["Date"] = email.Utils.formatdate(localtime=True)
+            s.sendmail(cfg.from_email, [cfg.from_email], msg.as_string())
+            s.close()
+            return render.page("/order_ok.html", render.order_ok(instance.onsale, order_form.d), self.member, ticket_sale_open())
+        else:
+            return render.page("/order.html", render.order(order_form, instance.onsale, formerror=True), self.member, ticket_sale_open())
+
+
 class ticketsmap(object):
 
     def GET(self):
@@ -324,7 +401,7 @@ class ticket_form(object):
                              web.form.Textbox("coupon", description="Gutschein", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              socRadio("payment", ([("banktransfer", u"Überweisung")] if banktransfer else []) + [("debit", "Lastschrift")], description="Zahlungsweise"),
-                             web.form.Textbox("account_holder", description="Kontoinhaber", size=50),
+                             web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
                              *(([web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
@@ -351,7 +428,7 @@ class ticket_form(object):
 
 class tickets(ticket_form):
 
-    @with_member_info
+    @with_member_auth(admin_only=True)
     def GET(self):
         instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         if not instance.onsale:
@@ -364,7 +441,7 @@ class tickets(ticket_form):
             ticket_form.payment.value = 'debit'
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member, ticket_sale_open())
 
-    @with_member_info
+    @with_member_auth(admin_only=True)
     def POST(self):
         instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         if not instance.onsale:
@@ -537,6 +614,7 @@ class member(object):
 
 
 notnull = web.form.Validator("Notwendige Angabe", bool)
+formint = web.form.regexp("[1-9]$", "Zahl kleiner 10 benötigt")
 
 def checkemail(i):
     if not i.email:
@@ -574,12 +652,17 @@ def checkaccount(i):
     if i.payment not in ['banktransfer', 'debit']:
         return False
     if i.payment == 'debit':
-        if not i.account_holder:
-            return False
         if not iban.ibanvalid(i.account_iban):
             return False
         if len(i.account_bic.strip()) not in [8, 11] or i.account_bic.strip()[4:6].upper() != i.account_iban.strip()[:2].upper():
             return False
+    return True
+
+def alwayscheckaccount(i):
+    if not iban.ibanvalid(i.account_iban):
+        return False
+    if len(i.account_bic.strip()) not in [8, 11] or i.account_bic.strip()[4:6].upper() != i.account_iban.strip()[:2].upper():
+        return False
     return True
 
 def checkshipment(i):
@@ -1520,7 +1603,7 @@ class member_admin_tag_delete(object):
 
 # {{{ admin tickets
 def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
-    i = Image.fromstring("RGB", (tag.ticketmap_width, tag.ticketmap_height), tag.ticketmap)
+    i = Image.frombytes("RGB", (tag.ticketmap_width, tag.ticketmap_height), tag.ticketmap)
     if not include_wheelchair_only:
         tickets = [ticket for ticket in tag.tickets if ticket.wheelchair != 'only' or ticket.sold_id is not None]
     else:
@@ -1530,7 +1613,7 @@ def ticketmap(tag, include_wheelchair_only=False, selected=[], sold=None):
             d = ticket.image_strong
         else:
             d = ticket.image_light
-        i2 = Image.fromstring("RGBA", (ticket.right-ticket.left, ticket.bottom-ticket.top), d)
+        i2 = Image.frombytes("RGBA", (ticket.right-ticket.left, ticket.bottom-ticket.top), d)
         i.paste(i2, (ticket.left, ticket.top, ticket.right, ticket.bottom), i2)
         if ticket.id in selected:
             draw = ImageDraw.Draw(i)
@@ -2235,11 +2318,21 @@ class member_admin_tickets_debit(object):
             for debit in debits:
                 x.startElement("debit", {})
                 x.characters("\n")
-                for name in ["id", "bankcode", "account_holder", "account_iban", "account_bic"]:
+                for name in ["id", "bankcode", "account_iban", "account_bic"]:
                     x.startElement(name, {})
                     x.characters("%s" % debit.__dict__[name])
                     x.endElement(name)
                     x.characters("\n")
+                x.startElement("account_holder", {})
+                if not debit.account_holder:
+                    if debit.shipment_firstname and debit.shipment_surname:
+                        x.characters("%s %s" % (debit.shipment_firstname, debit.shipment_surname))
+                    else:
+                        x.characters("%s" % debit.name)
+                else:
+                    x.characters("%s" % debit.account_holder)
+                x.endElement("account_holder")
+                x.characters("\n")
                 x.startElement("amount", {})
                 amount = sum(ticket.regular for ticket in debit.tickets) - sum(coupon.amount for coupon in debit.coupons)
                 if debit.shipment:

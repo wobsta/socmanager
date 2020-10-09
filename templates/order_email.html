@@ -1,0 +1,37 @@
+$def with (tag, data)
+$if data.gender == 'female':
+    Sehr geehrte Frau $data.surname\
+$else:
+    Sehr geehrter Herr $data.surname\
+,
+
+vielen Dank für Ihre Kartenbestellung für das Konzert des Schwäbischen Oratorienchors:
+
+$tag.ticket_title
+
+$tag.ticket_description
+
+Die Bestellungen werden zu gegebener Zeit (ab Anfang November) in der Reihenfolge
+des Eingangs bearbeitet und die Platzierung unter Berücksichtigung der
+Corona-Auflagen vorgenommen. Sollten hierbei Rückfragen notwendig sein, werden
+Sie nochmals kontaktiert. Ansonsten erhalten Sie dann die Bestätigung mit
+Nennung Ihrer Plätze (per E-Mail) und Zusendung der Karten (per Post). Auch die
+Lastschrift zur Zahlung wird erst zu diesem Zeitpunkt initiiert.
+
+Eine Zusammenfassung der Daten zu Ihrer Bestellung:
+
+   Vor- und Namename: $data.firstname $data.surname
+   Straße und Nr.:    $data.street
+   PLZ und Ort:       $data.zip $data.city
+   Anzahl Karten:     $data.count Stück in Kategorie $data.category.upper()
+
+Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und
+freuen uns darauf, Sie als unsere Gäste begrüßen zu dürfen!
+
+
+André Wobst,
+online-Kartenverkauf des Schwäbischen Oratorienchors
+
+
+PS: Für Rückfragen kontaktieren Sie bitte info@schwaebischer-oratorienchor.de.
+    Sie können beispielsweise einfach auf diese E-Mail antworten.
