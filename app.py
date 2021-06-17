@@ -848,7 +848,7 @@ class member_photos(object):
                           .join((count, orm.Tag.id == count.c.tag_id))\
                           .outerjoin((labeled, orm.Tag.id == labeled.c.tag_id))\
                           .join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance)\
-                          .order_by([desc(orm.Tag.instance_order)]).all()
+                          .order_by(desc(orm.Tag.instance_order)).all()
         return render.page("/member/photos.html", render.member.photos(tags), self.member, ticket_sale_open())
 
 
@@ -1242,7 +1242,7 @@ class member_admin_member_changes(object):
             query = query.filter_by(member_id=int(member_id))
         else:
             member = None
-        changes = query.order_by([desc(orm.Change.timestamp)])
+        changes = query.order_by(desc(orm.Change.timestamp))
         return render.page("/member/admin/member/X/changes.html", render.member.admin.member.changes(changes, member), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
@@ -2734,7 +2734,7 @@ class member_admin_link_new(member_admin_link_form):
     @with_member_auth(admin_only=True)
     def GET(self):
         form = self.form()
-        entrance = web.ctx.orm.query(orm.Entrance).join(orm.Instance).filter_by(name=cfg.instance).order_by([desc(orm.Entrance.expire)]).limit(1).all()
+        entrance = web.ctx.orm.query(orm.Entrance).join(orm.Instance).filter_by(name=cfg.instance).order_by(desc(orm.Entrance.expire)).limit(1).all()
         if entrance:
             form.expire.value = entrance[0].expire.strftime("%d.%m.%Y")
         return render.page("/member/admin/link/new.html", render.member.admin.link.new(form, self.instance), self.member, ticket_sale_open())
