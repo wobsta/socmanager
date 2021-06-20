@@ -720,7 +720,8 @@ class member_data(object):
         form.birthday.value = self.member.birthday and self.member.birthday.strftime("%d.%m.%Y") or ""
         form.birthday_private.checked = self.member.birthday_private
         form.notes.value = self.member.note
-        return render.page("/member/data.html", render.member.data(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+        web.header('Access-Control-Allow-Origin', 'https://nominatim.openstreetmap.org')
+        return render.page("/member/data.html", render.member.data(form), self.member, ticket_sale_open())
 
     @with_member_auth()
     def POST(self):
@@ -749,7 +750,7 @@ class member_data(object):
                 web.ctx.orm.add(orm.Change(u"%s\n\nwurde geändert in\n\n%s" % (old, new), u"Änderung von Mitgliederdaten", self.member, self.member))
             raise web.seeother("index.html")
         else:
-            return render.page("/member/data.html", render.member.data(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+            return render.page("/member/data.html", render.member.data(form), self.member, ticket_sale_open())
 
 
 def checkoldpasswd(i):
@@ -1079,7 +1080,8 @@ class member_admin_member_new(member_admin_member_form):
         form = self.form()
         if self.instance.circulars:
             form.messages.value = self.instance.circulars[0].name
-        return render.page("/member/admin/member/new.html", render.member.admin.member.new(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+        web.header('Access-Control-Allow-Origin', 'https://nominatim.openstreetmap.org')
+        return render.page("/member/admin/member/new.html", render.member.admin.member.new(form), self.member, ticket_sale_open())
 
     @with_member_auth()
     def POST(self):
@@ -1109,7 +1111,7 @@ class member_admin_member_new(member_admin_member_form):
             web.ctx.orm.add(orm.Change(unicode(member), u"Mitglied neu angelegt", member, self.member))
             raise web.seeother("../members.html")
         else:
-            return render.page("/member/admin/member/new.html", render.member.admin.member.new(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+            return render.page("/member/admin/member/new.html", render.member.admin.member.new(form), self.member, ticket_sale_open())
 
 
 class member_admin_member_edit(member_admin_member_form):
@@ -1138,7 +1140,8 @@ class member_admin_member_edit(member_admin_member_form):
         form.tags.value = " ".join(tag.name for tag in member.tags)
         form.messages.value = " ".join(message.access_by and "%s:%s" % (circular.name, message.access_by) or circular.name
                                        for message, circular in web.ctx.orm.query(orm.Message, orm.Circular).filter_by(member=member).join(orm.Circular).join(orm.Instance).filter_by(name=cfg.instance))
-        return render.page("/member/admin/member/X/edit.html", render.member.admin.member.edit(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+        web.header('Access-Control-Allow-Origin', 'https://nominatim.openstreetmap.org')
+        return render.page("/member/admin/member/X/edit.html", render.member.admin.member.edit(form), self.member, ticket_sale_open())
 
     @with_member_auth()
     def POST(self, id):
@@ -1189,7 +1192,7 @@ class member_admin_member_edit(member_admin_member_form):
                 web.ctx.orm.add(orm.Change(u"%s\n\nwurde geändert in\n\n%s" % (old, new), u"Änderung von Mitgliederdaten", member, self.member))
             raise web.seeother("../../members.html")
         else:
-            return render.page("/member/admin/member/X/edit.html", render.member.admin.member.edit(form, cfg.maps_key[web.ctx.protocol]), self.member, ticket_sale_open())
+            return render.page("/member/admin/member/X/edit.html", render.member.admin.member.edit(form), self.member, ticket_sale_open())
 
 
 class member_admin_member_delete(object):

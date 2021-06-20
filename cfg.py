@@ -14,7 +14,6 @@ init = "socmembers.xml"
 instance = u"soc"
 secret = u"..."
 cookie = "soclogin"
-maps_key = Storage(http="ABQIAAAAnfs7bKE82qgb3Zc2YyS-oBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxSySz_REpPq-4WZA27OwgbtyR3VcA")
 pdflatex = "/usr/bin/pdflatex"
 xsltproc = "/usr/bin/xsltproc"
 tmppath = "/tmp/socmanager"
