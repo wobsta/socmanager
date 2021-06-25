@@ -17,7 +17,13 @@ $:form.render()
 <script type="text/javascript">
 var lateral = parseFloat(document.getElementById("lateral").value);
 var longitudinal = parseFloat(document.getElementById("longitudinal").value);
-var mymap = L.map('mapid', {center: [lateral, longitudinal], zoom: 16});
+if (isNaN(lateral) || isNaN(longitudinal)) {
+  var lateral = 48.3668041;
+  var longitudinal = 10.8986971;
+  var mymap = L.map('mapid', {center: [lateral, longitudinal], zoom: 10});
+} else {
+  var mymap = L.map('mapid', {center: [lateral, longitudinal], zoom: 16});
+}
 L.tileLayer('https://osmtiles.schwaebischer-oratorienchor.de/{z}/{x}/{y}.png', {attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'}).addTo(mymap);
 var marker = L.marker([lateral, longitudinal]).addTo(mymap);
 function searchAddress() {
