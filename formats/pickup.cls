@@ -26,7 +26,7 @@ Zahlungskennzeichen: #3\par
   \put(0.3,21){\line(1,0){0.2}}
 }%
 \vspace*{1.7cm}
-\underline{\fontsize{8pt}{10pt}\selectfont André Wobst, Amselweg 22, 85716 Unterschleißheim}\par
+\underline{\fontsize{8pt}{10pt}\selectfont André Wobst, Ulmer Str. 248, 86156 Augsburg}\par
 \vspace*{0.7cm}
 #5 #6\par
 #7\par
