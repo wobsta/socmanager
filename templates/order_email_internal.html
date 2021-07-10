@@ -1,6 +1,9 @@
 $def with (tag, data)
 Zusammenfassung der Daten der Bestellung:
 
+   Titel:          $tag.ticket_title
+   Beschreibung:   $tag.ticket_description
+
    Anrede:         $data.gender
    Vorname:        $data.firstname
    Nachname:       $data.surname
@@ -11,5 +14,4 @@ Zusammenfassung der Daten der Bestellung:
    Inhaber:        $data.account_holder
    IBAN:           $data.account_iban.replace(' ', '').upper()
    BIC:            $data.account_bic.replace(' ', '').upper()
-   Karten:         $data.count Stück in Kategorie $data.category.upper()
-   Gutschein:      $data.coupon
+   Karten:         $data.count Stück

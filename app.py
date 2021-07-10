@@ -310,12 +310,10 @@ class order_form(object):
                              web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
                              web.form.Textbox("account_iban", notnull, description="IBAN", size=50),
                              web.form.Textbox("account_bic", notnull, description="BIC", size=50),
-                             web.form.Dropdown("category", [("a", "A (32 Euro)"), ("B", "B (24 Euro)"), ("C", "C (12 Euro, Hörerplatz)")], description="Kategorie"),
+                             web.form.Dropdown("time", [("Charpentier", "18:00 Uhr"), ("Charpentier2", "20:00 Uhr")], description="Zeit"),
                              web.form.Textbox("count", formint, description="Anzahl an Karten", size=50),
-                             web.form.Textbox("coupon", description="Gutschein (optional)", size=50),
                              web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
-                                           web.form.Validator("Ungültiger Gutschein.", checkcoupon(tag)),
                                            web.form.Validator("Ungültige Zahlungsangaben.", alwayscheckaccount)])
 
     def newsletter_form(self):
@@ -348,9 +346,13 @@ class order(order_form):
             return render.page("/tickets_closed.html", render.tickets_closed(), self.member, ticket_sale_open())
         order_form = self.order_form(instance.onsale)
         if order_form.validates():
+            tag = web.ctx.orm.query(orm.Tag).filter_by(name=order_form.d.time).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+            sold = orm.Sold(gender=order_form.d.gender, name=order_form.d.surname, email=order_form.d.email, online=True, payment='debit', account_holder=order_form.d.account_holder, account_iban=order_form.d.account_iban.replace(' ', ''), account_bic=order_form.d.account_bic.strip(), tag=tag, shipment=True, shipment_firstname=order_form.d.firstname, shipment_surname=order_form.d.surname, shipment_street=order_form.d.street, shipment_zip=order_form.d.zip, shipment_city=order_form.d.city, count=order_form.d.count)
+            web.ctx.orm.add(sold)
+            web.ctx.orm.commit()
             s = smtplib.SMTP()
             s.connect()
-            msg = email.MIMEText.MIMEText(unicode(render.order_email(instance.onsale, order_form.d)).encode("utf-8"), _charset="utf-8")
+            msg = email.MIMEText.MIMEText(unicode(render.order_email(tag, order_form.d)).encode("utf-8"), _charset="utf-8")
             msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             to_emails = order_form.d.email.split(",")
@@ -360,14 +362,14 @@ class order(order_form):
             msg["Date"] = email.Utils.formatdate(localtime=True)
             to_emails.append(cfg.from_email)
             s.sendmail(cfg.from_email, to_emails, msg.as_string())
-            msg = email.MIMEText.MIMEText(unicode(render.order_email_internal(instance.onsale, order_form.d)).encode("utf-8"), _charset="utf-8")
+            msg = email.MIMEText.MIMEText(unicode(render.order_email_internal(tag, order_form.d)).encode("utf-8"), _charset="utf-8")
             msg["Subject"] = u"Bestelldetails zur Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             msg["To"] = cfg.from_email
             msg["Date"] = email.Utils.formatdate(localtime=True)
             s.sendmail(cfg.from_email, [cfg.from_email], msg.as_string())
             s.close()
-            return render.page("/order_ok.html", render.order_ok(instance.onsale, order_form.d), self.member, ticket_sale_open())
+            return render.page("/order_ok.html", render.order_ok(tag, order_form.d), self.member, ticket_sale_open())
         else:
             return render.page("/order.html", render.order(order_form, instance.onsale, formerror=True), self.member, ticket_sale_open())
 
