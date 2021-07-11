@@ -98,10 +98,14 @@ $for sold, count, s, coupons in view.booked:
                     <a href="sold/$sold.id/pay.html">Zahlungseingang&nbsp;buchen</a>,
                     <a href="sold/$sold.id/remind.html">Erinnerung&nbsp;verschicken</a>
           </td>
-          <td align="right"><a href="map.pdf?sold=$sold.id">$count</a></td>
+          <td align="right">
+              <a href="map.pdf?sold=$sold.id">$count</a>
+              $if sold.count:
+                  ($sold.count)
+          </td>
           <td align="right">€$s</td>
           <td align="right">€${coupons or 0}</td>
-          <td align="right">€${s-(coupons or 0)}</td>
+          <td align="right">€${(s or 0)-(coupons or 0)}</td>
           <td>
             <a href="sold/$sold.id/pickup.html">Abholschein</a>,
             <a href="sold/$sold.id/edit.html">Bearbeiten</a>,
