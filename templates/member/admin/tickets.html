@@ -114,7 +114,11 @@ $for sold, count, s, coupons in view.booked:
         </tr>
   <tr>
     <td colspan="3"><b>Summe</b></td>
-    <td align="right"><b>$sum([(count or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
+    <td align="right">
+      <b>$sum([(count or 0) for sold, count, s, coupons in view.booked if sold.online])</b>
+      $if any(sold.count for sold, count, s, coupons in view.booked if sold.online):
+        <b>($sum([int(sold.count) for sold, count, s, coupons in view.booked if sold.online]))</b>
+    </td>
     <td align="right"><b>€$sum([(s or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
     <td align="right"><b>€$sum([(coupons or 0) for sold, count, s, coupons in view.booked if sold.online])</b></td>
     <td align="right"><b>€$sum([((s or 0)-(coupons or 0)) for sold, count, s, coupons in view.booked if sold.online])</b></td>
