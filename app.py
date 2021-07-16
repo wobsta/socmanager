@@ -362,12 +362,6 @@ class order(order_form):
             msg["Date"] = email.Utils.formatdate(localtime=True)
             to_emails.append(cfg.from_email)
             s.sendmail(cfg.from_email, to_emails, msg.as_string())
-            msg = email.MIMEText.MIMEText(unicode(render.order_email_internal(tag, order_form.d)).encode("utf-8"), _charset="utf-8")
-            msg["Subject"] = u"Bestelldetails zur Kartenbestellung für den Schwäbischen Oratorienchor"
-            msg["From"] = cfg.from_email
-            msg["To"] = cfg.from_email
-            msg["Date"] = email.Utils.formatdate(localtime=True)
-            s.sendmail(cfg.from_email, [cfg.from_email], msg.as_string())
             s.close()
             return render.page("/order_ok.html", render.order_ok(tag, order_form.d), self.member, ticket_sale_open())
         else:
