@@ -1,9 +1,11 @@
-$def with (form, tag, formerror=False)
+$def with (form, tag, formerror=False, overbooked=False)
 <h1>Kartenverkauf</h1>
 <h2>$tag.ticket_title</h2>
 <h3>$tag.ticket_description.replace('18:00 Uhr', '18:00 Uhr und 20:00 Uhr')</h3>
 $if formerror:
     <h1 style="color:#933;">ACHTUNG: Die Aktion konnte nicht ausgeführt werden, da sich Fehler im Formular befinden!</h1>
+$elif overbooked:
+    <h1 style="color:#933;">ACHTUNG: Die Aktion konnte nicht ausgeführt werden, da das Kontingent für den Vorverkauf für diese Aufführung und die gewünschte Kartenzahl leider erschöpft ist! An der Abendkasse werden noch Zusatzplätze (freie Bestuhlung mit Abstand gemäß Corona-Auflagen) verkauft.</h1>
 $else:
     <p>Auf dieser Seite können Sie Karten für eines von den zwei kommenden,
     identischen Konzerten des Schwäbischen Oratorienchors erwerben.</p>
