@@ -356,7 +356,7 @@ class order(order_form):
                 return render.page("/order.html", render.order(order_form, instance.onsale, overbooked=True), self.member, ticket_sale_open())
             s = smtplib.SMTP()
             s.connect()
-            msg = email.MIMEText.MIMEText(unicode(render.order_email(tag, order_form.d)).encode("utf-8"), _charset="utf-8")
+            msg = email.MIMEText.MIMEText(unicode(render.order_email(tag, sold)).encode("utf-8"), _charset="utf-8")
             msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
             msg["From"] = cfg.from_email
             to_emails = order_form.d.email.split(",")
@@ -367,7 +367,7 @@ class order(order_form):
             to_emails.append(cfg.from_email)
             s.sendmail(cfg.from_email, to_emails, msg.as_string())
             s.close()
-            return render.page("/order_ok.html", render.order_ok(tag, order_form.d), self.member, ticket_sale_open())
+            return render.page("/order_ok.html", render.order_ok(tag, sold), self.member, ticket_sale_open())
         else:
             return render.page("/order.html", render.order(order_form, instance.onsale, formerror=True), self.member, ticket_sale_open())
 

@@ -1,8 +1,8 @@
 $def with (tag, data)
 $if data.gender == 'female':
-    Sehr geehrte Frau $data.surname\
+    Sehr geehrte Frau $data.name\
 $else:
-    Sehr geehrter Herr $data.surname\
+    Sehr geehrter Herr $data.name\
 ,
 
 vielen Dank für Ihre Kartenbestellung für das Konzert des Schwäbischen Oratorienchors:
@@ -13,17 +13,26 @@ $tag.ticket_description
 
 Die Bestellungen werden in der Reihenfolge des Eingangs bearbeitet und die
 Platzierung unter Berücksichtigung der Corona-Auflagen vorgenommen. Sollten
-hierbei Rückfragen notwendig sein, werden Sie nochmals kontaktiert. Ansonsten
-erhalten Sie dann die Bestätigung mit Nennung Ihrer Plätze (per E-Mail) und
-Zusendung der Karten (per Post). Auch die Lastschrift zur Zahlung wird erst zu
-diesem Zeitpunkt initiiert.
+hierbei Rückfragen notwendig sein, werden Sie nochmals kontaktiert. Die
+Eintrittskarten werden ca. eine Woche vor der Aufführung an die angegebene
+Adresse geschickt. Die Lastschrift wird auch erst zu diesem Zeitpunkt initiiert.
 
 Eine Zusammenfassung der Daten zu Ihrer Bestellung:
 
-   Vor- und Namename: $data.firstname $data.surname
-   Straße und Nr.:    $data.street
-   PLZ und Ort:       $data.zip $data.city
-   Anzahl Karten:     $data.count Stück
+   $if data.gender == 'female':
+      Name:              Frau $data.name
+   $else:
+      Name:              Herr $data.name
+   Straße und Nr.:    $data.shipment_street
+   PLZ und Ort:       $data.shipment_zip $data.shipment_city
+   Anzahl Karten:     $data.count Stück à 15 Euro
+
+Die Bezahlung erfolgt durch folgendes SEPA-Lastschriftmandat für eine einmalige
+SEPA-Basislastschrift:
+
+   Gläubiger-ID des Schwäbischen Oratorienchor e.V.: DE95ZZZ00001496812
+   Mandatsreferenz:   $(data.id)-$data.bankcode
+   Summe:             $(int(data.count)*15) Euro
 
 Wir bedanken uns ganz herzlich für Ihr Interesse an unserem Konzert und
 freuen uns darauf, Sie als unsere Gäste begrüßen zu dürfen!
