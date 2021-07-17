@@ -350,7 +350,7 @@ class order(order_form):
             sold = orm.Sold(gender=order_form.d.gender, name=order_form.d.surname, email=order_form.d.email, online=True, payment='debit', account_holder=order_form.d.account_holder, account_iban=order_form.d.account_iban.replace(' ', ''), account_bic=order_form.d.account_bic.strip(), tag=tag, shipment=True, shipment_firstname=order_form.d.firstname, shipment_surname=order_form.d.surname, shipment_street=order_form.d.street, shipment_zip=order_form.d.zip, shipment_city=order_form.d.city, count=order_form.d.count)
             web.ctx.orm.add(sold)
             web.ctx.orm.commit()
-            if sum([(int(sold.count) if sold.online else len(sold.tickets)) for sold in tag.solds]) > 127:
+            if sum([(int(sold.count) if sold.online else len(sold.tickets)) for sold in tag.solds]) > len(tag.tickets):
                 web.ctx.orm.delete(sold)
                 web.ctx.orm.commit()
                 return render.page("/order.html", render.order(order_form, instance.onsale, overbooked=True), self.member, ticket_sale_open())
