@@ -875,10 +875,10 @@ class member_photos_labels(object):
         photo = web.ctx.orm.query(orm.Photo).filter_by(name=i.photo).join(orm.Tag).filter_by(name=tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         if i.action == "save":
             try:
-                top = int(i.top)
-                left = int(i.left)
-                width = int(i.width)
-                height = int(i.height)
+                top = int(float(i.top))
+                left = int(float(i.left))
+                width = int(float(i.width))
+                height = int(float(i.height))
             except ValueError:
                 raise web.BadRequest()
             if top + height < 5:
