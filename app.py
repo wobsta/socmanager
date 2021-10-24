@@ -71,7 +71,6 @@ class socRadio(web.form.Radio):
 urls = ("/login.html$", "login",
         "/logout.html$", "logout",
         "/link.html$", "link",
-        "/order.html$", "order",
         "/tickets.html$", "tickets",
         "/tickets.png$", "ticketsmap",
         "/tickets_ok_([^.]+).html$", "tickets_ok",
@@ -296,82 +295,6 @@ class pages(object):
         return render.page("/%s" % path, content(), self.member, ticket_sale_open())
 
 
-class order_form(object):
-
-    def order_form(self, tag):
-        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
-                             web.form.Textbox("firstname", notnull, description="Vorname", size=50),
-                             web.form.Textbox("surname", notnull, description="Nachname", size=50),
-                             web.form.Textbox("street", notnull, description="Straße und Nr.", size=50),
-                             web.form.Textbox("zip", notnull, description="PLZ", size=50),
-                             web.form.Textbox("city", notnull, description="Ort", size=50),
-                             web.form.Textbox("phone", description="Telefon (optional)", size=50),
-                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
-                             web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
-                             web.form.Textbox("account_iban", notnull, description="IBAN", size=50),
-                             web.form.Textbox("account_bic", notnull, description="BIC", size=50),
-                             web.form.Dropdown("time", [("Charpentier", "18:00 Uhr"), ("Charpentier2", "20:00 Uhr")], description="Zeit"),
-                             web.form.Textbox("count", formint, description="Anzahl an Karten", size=50),
-                             web.form.Button("submit", type="submit", html=u"Karten verbindlich kaufen"),
-                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
-                                           web.form.Validator("Ungültige Zahlungsangaben.", alwayscheckaccount)])
-
-    def newsletter_form(self):
-        return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
-                             web.form.Textbox("name", notnull, description=u"Nachname", size=50),
-                             web.form.Textbox("email", notnull, description="E-Mail", size=50),
-                             web.form.Button("submit", type="submit", html=u"Rundschreiben abonnieren"),
-                             validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail)])
-
-class order(order_form):
-
-    @with_member_info
-    def GET(self):
-        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
-        if not instance.onsale:
-            newsletter_form = self.newsletter_form()
-            return render.page("/order.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
-        if instance.sale_temporarily_closed:
-            return render.page("/order.html", render.tickets_closed(), self.member, ticket_sale_open())
-        order_form = self.order_form(instance.onsale)
-        return render.page("/order.html", render.order(order_form, instance.onsale), self.member, ticket_sale_open())
-
-    @with_member_info
-    def POST(self):
-        instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
-        if not instance.onsale:
-            newsletter_form = self.newsletter_form()
-            return render.page("/tickets_info.html", render.tickets_info(newsletter_form), self.member, ticket_sale_open())
-        if instance.sale_temporarily_closed:
-            return render.page("/tickets_closed.html", render.tickets_closed(), self.member, ticket_sale_open())
-        order_form = self.order_form(instance.onsale)
-        if order_form.validates():
-            tag = web.ctx.orm.query(orm.Tag).filter_by(name=order_form.d.time).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-            sold = orm.Sold(gender=order_form.d.gender, name=order_form.d.surname, email=order_form.d.email, online=True, payment='debit', account_holder=order_form.d.account_holder, account_iban=order_form.d.account_iban.replace(' ', ''), account_bic=order_form.d.account_bic.strip(), tag=tag, shipment=True, shipment_firstname=order_form.d.firstname, shipment_surname=order_form.d.surname, shipment_street=order_form.d.street, shipment_zip=order_form.d.zip, shipment_city=order_form.d.city, count=order_form.d.count)
-            web.ctx.orm.add(sold)
-            web.ctx.orm.commit()
-            if sum([(int(x.count) if x.online else len(x.tickets)) for x in tag.solds]) > len(tag.tickets):
-                web.ctx.orm.delete(sold)
-                web.ctx.orm.commit()
-                return render.page("/order.html", render.order(order_form, instance.onsale, overbooked=True), self.member, ticket_sale_open())
-            s = smtplib.SMTP()
-            s.connect()
-            msg = email.MIMEText.MIMEText(unicode(render.order_email(tag, sold)).encode("utf-8"), _charset="utf-8")
-            msg["Subject"] = u"Ihre Kartenbestellung für den Schwäbischen Oratorienchor"
-            msg["From"] = cfg.from_email
-            to_emails = order_form.d.email.split(",")
-            msg["To"] = to_emails[0]
-            if len(to_emails) > 1:
-                msg["Cc"] = ",".join(to_emails[1:])
-            msg["Date"] = email.Utils.formatdate(localtime=True)
-            to_emails.append(cfg.from_email)
-            s.sendmail(cfg.from_email, to_emails, msg.as_string())
-            s.close()
-            return render.page("/order_ok.html", render.order_ok(tag, sold), self.member, ticket_sale_open())
-        else:
-            return render.page("/order.html", render.order(order_form, instance.onsale, formerror=True), self.member, ticket_sale_open())
-
-
 class ticketsmap(object):
 
     def GET(self):
@@ -398,13 +321,15 @@ class ticket_form(object):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
+                             web.form.Textbox("phone", notnull, description="Telefon", size=50),
                              web.form.Textbox("coupon", description="Gutschein", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              socRadio("payment", ([("banktransfer", u"Überweisung")] if banktransfer else []) + [("debit", "Lastschrift")], description="Zahlungsweise"),
                              web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
-                             *(([web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
+                             *(([# web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
+                                 socRadio("with_shipment", [("yes", "kostenfrei an die folgende Addresse:")], description="Versand"),
                                  web.form.Textbox("shipment_firstname", description="Vorname", size=50),
                                  web.form.Textbox("shipment_surname", description="Nachname", size=50),
                                  web.form.Textbox("shipment_street", description="Straße und Nr.", size=50),
@@ -428,7 +353,7 @@ class ticket_form(object):
 
 class tickets(ticket_form):
 
-    @with_member_auth(admin_only=True)
+    @with_member_info
     def GET(self):
         instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         if not instance.onsale:
@@ -439,9 +364,10 @@ class tickets(ticket_form):
         ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible, instance.shipment_possible)
         if not instance.bank_transfer_possible:
             ticket_form.payment.value = 'debit'
+        ticket_form.with_shipment.value = 'yes'
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member, ticket_sale_open())
 
-    @with_member_auth(admin_only=True)
+    @with_member_info
     def POST(self):
         instance = web.ctx.orm.query(orm.Instance).filter_by(name=cfg.instance).one()
         if not instance.onsale:
@@ -460,9 +386,10 @@ class tickets(ticket_form):
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             if instance.shipment_possible:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, phone=ticket_form.d.phone, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=1, #web.input().has_key("with_shipment"),
+                                shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
             else:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, phone=ticket_form.d.phone, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
@@ -484,8 +411,8 @@ class tickets(ticket_form):
                     coupon_id = int(coupon_id)
                     web.ctx.orm.query(orm.Coupon).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
             amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
-            if sold.shipment:
-                amount += 1
+            # if sold.shipment:
+            #     amount += 1
             if amount <= 0:
                 sold.payed = datetime.datetime.now()
                 sold.payment = 'coupon'
@@ -645,8 +572,8 @@ def checkaccount(i):
         coupon_id = int(coupon_id)
         amount, = web.ctx.orm.query(orm.Coupon.amount).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).first()
         sum -= amount
-    if web.input().has_key("with_shipment"):
-        sum += 1
+    # if web.input().has_key("with_shipment"):
+    #     sum += 1
     if sum <= 0:
         return True
     if i.payment not in ['banktransfer', 'debit']:
@@ -2232,8 +2159,8 @@ class member_admin_tickets_pay(object):
             sum += ticket.regular
         for coupon in sold.coupons:
             sum -= coupon.amount
-        if sold.shipment:
-            sum += 1
+        # if sold.shipment:
+        #     sum += 1
         if sold.shipment:
             return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay_shipment(sold, sum), self.member, ticket_sale_open())
         return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay(sold, sum), self.member, ticket_sale_open())
@@ -2344,8 +2271,8 @@ class member_admin_tickets_debit(object):
                 x.characters("\n")
                 x.startElement("amount", {})
                 amount = sum(ticket.regular for ticket in debit.tickets) - sum(coupon.amount for coupon in debit.coupons)
-                if debit.shipment:
-                    amount += 1
+                # if debit.shipment:
+                #     amount += 1
                 x.characters("%d" % amount)
                 total += amount
                 x.endElement("amount")
