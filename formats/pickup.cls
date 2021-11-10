@@ -43,7 +43,5 @@ Anbei übersenden wir Ihnen Ihre Karten:\par
 \vspace{0.5cm}
 }
 \newcommand\socTicket[5]{%
-}
-\newcommand\socTickets[5]{%
-#1, Reihe #2, #3 Stück à  \EUR #5\par
+#1, Reihe #2, Platz #3, Kategorie #4, \EUR #5\par
 }

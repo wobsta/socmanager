@@ -2126,12 +2126,6 @@ class member_admin_tickets_pickup(object):
                 f.write(u"\\socPickup{%s}{%s}{%s-%s}{%s-%s}{%s}{%s}{%s}{%s}\n" % (sold.gender, sold.name, sold.id, sold.bankcode, sold.id, sold.pickupcode, "payed" if sold.payed else "not payed", tag.ticket_title, tag.ticket_description, sum))
             for ticket in sold.tickets:
                 f.write(u"\\socTicket{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, ticket.seat, ticket.cathegory, ticket.regular))
-            assert str(len(sold.tickets)) == sold.count
-            assert len(set(ticket.block for ticket in sold.tickets)) == 1
-            assert len(set(ticket.row for ticket in sold.tickets)) == 1
-            assert len(set(ticket.cathegory for ticket in sold.tickets)) == 1
-            assert len(set(ticket.regular for ticket in sold.tickets)) == 1
-            f.write(u"\\socTickets{%s}{%s}{%s}{%s}{%s}\n" % (ticket.block, ticket.row, len(sold.tickets), ticket.cathegory, ticket.regular))
             f.write(u"\\clearpage\n")
         f.write(u"\\end{document}\n")
         f.close()
