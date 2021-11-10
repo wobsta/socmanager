@@ -1625,11 +1625,16 @@ class member_admin_tickets(object):
             sheet = pos = 0
             for ticket in tickets:
                 ticket.sheet = sheet
-                if sheet == full_sheets or (sheet == full_sheets - 1 and pos >= on_last_page > 0):
+                if sheet == full_sheets:
                     sheet = 0
                     pos += 1
                 else:
                     sheet += 1
+            while sheet <= full_sheets:
+                empty = orm.Ticket()
+                empty.sheet = sheet
+                tickets.append(empty)
+                sheet += 1
             tickets.sort(key=lambda ticket: ticket.sheet)
 
             try:
