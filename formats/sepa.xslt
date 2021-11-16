@@ -57,7 +57,7 @@
       <xsl:for-each select="debits/debit">
       <DrctDbtTxInf>
         <PmtId>
-          <EndToEndId>Eintrittskarten</EndToEndId>
+          <EndToEndId><xsl:value-of select="id"/></EndToEndId>
         </PmtId>
         <InstdAmt Ccy="EUR"><xsl:value-of select="amount"/>.00</InstdAmt>
         <DrctDbtTx>
@@ -83,7 +83,7 @@
           <Nm><xsl:value-of select="account_holder"/></Nm>
         </UltmtDbtr>
         <RmtInf>
-          <Ustrd></Ustrd>
+          <Ustrd>Eintrittskarten <xsl:value-of select="id"/></Ustrd>
         </RmtInf>
       </DrctDbtTxInf>
       </xsl:for-each>
