@@ -321,15 +321,13 @@ class ticket_form(object):
         return web.form.Form(web.form.Dropdown("gender", [("female", "Frau"), ("male", "Herr")], description="Anrede"),
                              web.form.Textbox("name", notnull, description=u"Nachname", size=50),
                              web.form.Textbox("email", notnull, description="E-Mail", size=50),
-                             web.form.Textbox("phone", notnull, description="Telefon", size=50),
                              web.form.Textbox("coupon", description="Gutschein", size=50),
                              web.form.Checkbox("newsletter", description="Rundschreiben", value="yes"),
                              socRadio("payment", ([("banktransfer", u"Überweisung")] if banktransfer else []) + [("debit", "Lastschrift")], description="Zahlungsweise"),
                              web.form.Textbox("account_holder", description="Kontoinhaber (falls abweichend)", size=50),
                              web.form.Textbox("account_iban", description="IBAN", size=50),
                              web.form.Textbox("account_bic", description="BIC", size=50),
-                             *(([# web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
-                                 socRadio("with_shipment", [("yes", "kostenfrei an die folgende Addresse:")], description="Versand"),
+                             *(([web.form.Checkbox("with_shipment", description="Versand (zzgl. 1€)", value="yes"),
                                  web.form.Textbox("shipment_firstname", description="Vorname", size=50),
                                  web.form.Textbox("shipment_surname", description="Nachname", size=50),
                                  web.form.Textbox("shipment_street", description="Straße und Nr.", size=50),
@@ -364,7 +362,6 @@ class tickets(ticket_form):
         ticket_form = self.ticket_form(instance.onsale, instance.bank_transfer_possible, instance.shipment_possible)
         if not instance.bank_transfer_possible:
             ticket_form.payment.value = 'debit'
-        ticket_form.with_shipment.value = 'yes'
         return render.page("/tickets.html", render.tickets(ticket_form, instance.onsale, []), self.member, ticket_sale_open())
 
     @with_member_info
@@ -386,10 +383,9 @@ class tickets(ticket_form):
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             if instance.shipment_possible:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, phone=ticket_form.d.phone, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=1, #web.input().has_key("with_shipment"),
-                                shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
             else:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, phone=ticket_form.d.phone, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
