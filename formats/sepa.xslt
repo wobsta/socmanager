@@ -83,7 +83,7 @@
           <Nm><xsl:value-of select="account_holder"/></Nm>
         </UltmtDbtr>
         <RmtInf>
-          <Ustrd>Eintrittskarten <xsl:value-of select="id"/></Ustrd>
+          <Ustrd>Eintrittskarten Kauf-ID <xsl:value-of select="id"/></Ustrd>
         </RmtInf>
       </DrctDbtTxInf>
       </xsl:for-each>
