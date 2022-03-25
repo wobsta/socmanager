@@ -12,8 +12,6 @@ $if failed:
 $elif formerror:
     <h1 style="color:#933;">ACHTUNG: Die Buchung konnte noch nicht ausgeführt werden, da sich Fehler im Formular unten befinden!!!</h1>
 $else:
-    <p><b>Corona-Hinweis</b>: Für Konzertbesucher gilt die 2G Regel
-    sowie Maskenpflicht auch am Sitzplatz.
     <p>Auf dieser Seite können Sie Karten für die kommende Aufführung des
     Schwäbischen Oratorienchors erwerben. Es werden ausschließlich Platzkarten in
     den Kategorien A, B und C zu €32, €24 und €12 angeboten. Es gibt keine
@@ -130,9 +128,9 @@ $:form.render()
       $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
     });
     $$('tr:has(input[id^="account_"])').toggle($$('#payment_debit').is(':checked'));
-    // $$('input[id="with_shipment_yes"]').change(function(){
-    //   $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
-    // });
-    // $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
+    $$('input[id="with_shipment_yes"]').change(function(){
+      $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
+    });
+    $$('tr:has(input[id^="shipment_"])').toggle($$('#with_shipment_yes').is(':checked'));
   });
 </script>
