@@ -17,6 +17,8 @@ gesendeten E-Mail an die Abendkasse): <b>$sold.id-$sold.pickupcode</b></p>
   $for ticket in sold.tickets:
       <li>$ticket.block, Reihe $ticket.row, Platz $ticket.seat (Kategorie $ticket.cathegory, €$ticket.regular)</li>
 </ul>
+$if sum(coupon.amount for coupon in sold.coupons):
+    <p>Mit dieser Bestellung wurde ein Gutscheinwert von €$(sum(coupon.amount for coupon in sold.coupons)) eingelöst.</p>
 <p>Die Bezahlung erfolgt durch folgendes SEPA-Lastschriftmandat für eine einmalige
 SEPA-Basislastschrift:</p>
 <p>Gläubiger-ID des Schwäbischen Oratorienchor e.V.: DE95ZZZ00001496812<br>
