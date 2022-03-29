@@ -14,13 +14,12 @@ $else:
 </ul>
 $if sum(coupon.amount for coupon in sold.coupons):
     <p>Mit dieser Bestellung wurde ein Gutscheinwert von €$(sum(coupon.amount for coupon in sold.coupons)) eingelöst.</p>
-$if 0:
-    <p>Die Versandkosten betragen €1.</p>
+<p>Die Versandkosten betragen €1.</p>
 <p>Die Bezahlung erfolgt durch folgendes SEPA-Lastschriftmandat für eine einmalige
 SEPA-Basislastschrift:</p>
 <p>Gläubiger-ID des Schwäbischen Oratorienchor e.V.: DE95ZZZ00001496812<br>
 Mandatsreferenz: $(sold.id)-$sold.bankcode<br>
-Betrag: EUR $(1-1+sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))</p>
+Betrag: EUR $(1+sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))</p>
 <p>Der Einzug erfolgt zeitnah (typischerweise in ca. zehn Tagen), in
 Einklang mit den Regularien von SEPA-Basislastschriften in frühestens fünf
 Tagen. Bitte sorgen Sie für ausreichende Kontodeckung, um kostenintensive
