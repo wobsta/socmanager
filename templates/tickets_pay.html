@@ -24,8 +24,8 @@ Bitte überweisen Sie den Gesamtbetrag von EUR $(sum(ticket.regular for ticket i
 des Schwäbischen Oratorienchors:
 
   Kontoinhaber: Schwäbischer Oratorienchor
-  IBAN: DE36 7205 0101 0030 2096 05
-  BIC: BYLADEM1AUG
+  IBAN: DE14 7315 0000 0030 2096 05
+  BIC: BYLADEM1MLM
   Name der Bank: Kreissparkasse Augsburg
   Betrag: EUR $(sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))
   Verwendungszweck: Karten $(sold.id)-$sold.bankcode

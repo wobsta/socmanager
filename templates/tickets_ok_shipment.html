@@ -21,10 +21,8 @@ $if sum(coupon.amount for coupon in sold.coupons):
 des Schwäbischen Oratorienchors:</p>
 <ul>
 <li>Kontoinhaber: Schwäbischer Oratorienchor</li>
-<li>Kontonummer: 30209605</li>
-<li>Bankleitzahl: 72050101</li>
-<li>IBAN: DE36 7205 0101 0030 2096 05</li>
-<li>BIC: BYLADEM1AUG</li>
+<li>IBAN: DE14 7315 0000 0030 2096 05</li>
+<li>BIC: BYLADEM1MLM</li>
 <li>Name der Bank: Kreissparkasse Augsburg</li>
 <li>Betrag: €$(1+sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons))</li>
 <li>Verwendungszweck: Karten $(sold.id)-$sold.bankcode</li>
