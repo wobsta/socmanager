@@ -82,6 +82,7 @@ urls = ("/login.html$", "login",
         "/member/access.html$", "member_access",
         "/member/message/([^/]+)/show.html$", "member_message",
         "/member/message/([^/]+)/(.*)$", "member_message_attachment",
+        "/member/survey.html$", "member_survey",
         "/member/photos.html$", "member_photos",
         "/member/photos/([^/]+)/(?:index.html)?$", "member_photos_album",
         "/member/photos/([^/]+)/labels.html$", "member_photos_labels",
@@ -758,6 +759,25 @@ class member_message_attachment(object):
         web.header("Content-Type", attachment.mimetype)
         web.header("Content-Disposition", "attachment; filename=%s" % attachment.name)
         return attachment.data
+
+
+class member_survey(object):
+
+    @with_member_auth()
+    def GET(self):
+        yes = web.ctx.orm.query(orm.Tag).filter_by(name='survey_yes').one() in self.member.tags
+        no = web.ctx.orm.query(orm.Tag).filter_by(name='survey_no').one() in self.member.tags
+        return render.page("/member/survey.html", render.member.survey(yes, no), self.member, ticket_sale_open())
+
+    @with_member_auth()
+    def POST(self):
+        yes = web.ctx.orm.query(orm.Tag).filter_by(name='survey_yes').one()
+        no = web.ctx.orm.query(orm.Tag).filter_by(name='survey_no').one()
+        if yes in self.member.tags: self.member.tags.remove(yes)
+        if no in self.member.tags: self.member.tags.remove(no)
+        if web.input()["survey"] == "yes": self.member.tags.append(yes)
+        if web.input()["survey"] == "no": self.member.tags.append(no)
+        return render.page("/member/survey.html", render.member.survey(web.input()["survey"] == "yes", web.input()["survey"] == "no"), self.member, ticket_sale_open())
 
 
 class member_photos(object):
