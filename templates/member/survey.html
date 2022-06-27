@@ -1,0 +1,14 @@
+$def with (yes=0, no=0)
+<h1>Deine Rückmeldung zum Chorfest</h1>
+<form method="post" action="survey.html">
+<p><input type="radio" name="survey" value="yes" id="yes" \
+$if yes:
+  checked="checked"
+><label for="yes">ja, ich komme</label></p>
+<p><input type="radio" name="survey" value="no" id="no" \
+$if no:
+  checked="checked"
+><label for="no">nein, ich komme nicht</label></p>
+<p><input type="submit" value="Speichern"></p>
+</form>
+<p>zu <a href="index.html">Deiner SOC Mitgliederseite</a></p>
