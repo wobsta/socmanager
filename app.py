@@ -1320,7 +1320,7 @@ class member_admin_print(member_admin_work_on_selection):
                             if format.hide_private and name == "birthday" and member.birthday_private:
                                 value = ""
                             f.write(u"\\member%s{%s}%%\n" % (name.capitalize(), TeX_escape(value)))
-                        f.write(u"\\memberTags{%s}%%\n" % ", ".join(tag.name for tag in member.tags))
+                        f.write(u"\\memberTags{%s}%%\n" % ", ".join(tag.name.replace('_', '\\_') for tag in member.tags))
                         f.write(u"\\end{member}%\n")
                     f.write(u"\\end{memberGroup}%\n")
                 f.write(u"\\end{members}%\n")
