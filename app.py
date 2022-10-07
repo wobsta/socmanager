@@ -1637,20 +1637,27 @@ class member_admin_tickets(object):
 
             tickets = sorted(web.ctx.orm.query(orm.Ticket).filter_by(tag_id=self.tag.id).filter(or_(orm.Ticket.sold_id != None, orm.Ticket.wheelchair != 'only')),
                              key=lambda ticket: (safeint(ticket.block), safeint(ticket.row), safeint(ticket.seat)))
-            full_sheets, on_last_page = divmod(len(tickets), mapformat.order)
+            full_sheets, left = divmod(len(tickets), mapformat.order)
+            total_sheets = full_sheets
+            if left:
+                total_sheets += 1
             sheet = pos = 0
             for ticket in tickets:
                 ticket.sheet = sheet
-                if sheet == full_sheets:
+                sheet += 1
+                if sheet == total_sheets:
                     sheet = 0
                     pos += 1
-                else:
-                    sheet += 1
-            while sheet <= full_sheets:
+            while 1:
+                if pos == mapformat.order:
+                    break
                 empty = orm.Ticket()
                 empty.sheet = sheet
                 tickets.append(empty)
                 sheet += 1
+                if sheet == total_sheets:
+                    sheet = 0
+                    pos += 1
             tickets.sort(key=lambda ticket: ticket.sheet)
 
             try:
