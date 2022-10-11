@@ -408,8 +408,8 @@ class tickets(ticket_form):
                     coupon_id = int(coupon_id)
                     web.ctx.orm.query(orm.Coupon).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).update({"sold_id": sold.id})
             amount = sum(ticket.regular for ticket in sold.tickets)-sum(coupon.amount for coupon in sold.coupons)
-            # if sold.shipment:
-            #     amount += 1
+            if sold.shipment:
+                amount += 1
             if amount <= 0:
                 sold.payed = datetime.datetime.now()
                 sold.payment = 'coupon'
@@ -569,8 +569,8 @@ def checkaccount(i):
         coupon_id = int(coupon_id)
         amount, = web.ctx.orm.query(orm.Coupon.amount).filter_by(tag_id=instance.onsale.id).filter_by(id=coupon_id).filter_by(code=code).filter_by(sold_id=None).first()
         sum -= amount
-    # if web.input().has_key("with_shipment"):
-    #     sum += 1
+    if web.input().has_key("with_shipment"):
+        sum += 1
     if sum <= 0:
         return True
     if i.payment not in ['banktransfer', 'debit']:
@@ -2181,8 +2181,8 @@ class member_admin_tickets_pay(object):
             sum += ticket.regular
         for coupon in sold.coupons:
             sum -= coupon.amount
-        # if sold.shipment:
-        #     sum += 1
+        if sold.shipment:
+            sum += 1
         if sold.shipment:
             return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay_shipment(sold, sum), self.member, ticket_sale_open())
         return render.page("/member/admin/link/X/sold/X/pay.html", render.member.admin.ticket.pay(sold, sum), self.member, ticket_sale_open())
@@ -2293,8 +2293,8 @@ class member_admin_tickets_debit(object):
                 x.characters("\n")
                 x.startElement("amount", {})
                 amount = sum(ticket.regular for ticket in debit.tickets) - sum(coupon.amount for coupon in debit.coupons)
-                # if debit.shipment:
-                #     amount += 1
+                if debit.shipment:
+                    amount += 1
                 x.characters("%d" % amount)
                 total += amount
                 x.endElement("amount")
