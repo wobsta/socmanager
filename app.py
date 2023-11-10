@@ -828,7 +828,7 @@ class member_recording_form(object):
 
     def form(self):
         tags = web.ctx.orm.query(orm.Tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).order_by(desc(orm.Tag.instance_order)).all()
-        member_recordings_tags = [recording.tag for recording in self.member.recordings]
+        member_recordings_tags = [x.tag for x in self.member.recordings]
         return web.form.Form(web.form.Dropdown("recording", [(tag.recording, tag.description.split(" (")[0])
                                                              for tag in tags
                                                              if tag.recording and tag not in member_recordings_tags], description="Aufnahme"),
@@ -866,7 +866,7 @@ class member_recording(object):
     @with_member_auth()
     def GET(self, recording, format):
         tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+        if not self.member.subscription_active and tag not in [x.tag for x in self.member.recordings]:
             raise web.Forbidden()
         if format == "wav":
             files = [f[:-4] + "wav" for f in sorted(os.listdir(os.path.join(cfg.recordingpath, "flac", recording)))]
@@ -880,7 +880,7 @@ class member_recording_get(object):
     @with_member_auth()
     def GET(self, recording, file):
         tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+        if not self.member.subscription_active and tag not in [x.tag for x in self.member.recordings]:
             raise web.Forbidden()
         format = file.split('.')[-1]
         if format not in ['mp3', 'flac', 'wav']:
@@ -908,7 +908,7 @@ class member_recording_zip(object):
     @with_member_auth()
     def GET(self, recording, format):
         tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
-        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+        if not self.member.subscription_active and tag not in [x.tag for x in self.member.recordings]:
             raise web.Forbidden()
         dir = tempfile.mkdtemp()
         try:
