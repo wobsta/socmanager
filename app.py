@@ -84,7 +84,7 @@ urls = ("/login.html$", "login",
         "/member/message/([^/]+)/(.*)$", "member_message_attachment",
         "/member/survey.html$", "member_survey",
         "/member/recordings.html$", "member_recordings",
-        "/member/recording/([^/]+)/index-(mp3|flac).html$", "member_recording",
+        "/member/recording/([^/]+)/index-(mp3|flac|wav).html$", "member_recording",
         "/member/recording/([^/]+)/(.*)$", "member_recording_get",
         "/member/recording/([^/]+)_(mp3|flac|wav).zip$", "member_recording_zip",
         "/member/recording_form.html$", "member_recording_form",
@@ -868,7 +868,10 @@ class member_recording(object):
         tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
         if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
             raise web.Forbidden()
-        files = list(sorted(os.listdir(os.path.join(cfg.recordingpath, format, recording))))
+        if format == "wav":
+            files = [f[:-4] + "wav" for f in sorted(os.listdir(os.path.join(cfg.recordingpath, "flac", recording)))]
+        else:
+            files = list(sorted(os.listdir(os.path.join(cfg.recordingpath, format, recording))))
         return render.page("/member/recording/X/index.html", render.member.recording(tag, files), self.member, ticket_sale_open())
 
 
@@ -880,11 +883,14 @@ class member_recording_get(object):
         if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
             raise web.Forbidden()
         format = file.split('.')[-1]
-        if format not in ['mp3', 'flac']:
+        if format not in ['mp3', 'flac', 'wav']:
             raise web.NotFound()
-        if file not in os.listdir(os.path.join(cfg.recordingpath, format, recording)):
+        if ((file[:-3]+"flac") if format == "wav" else file) not in os.listdir(os.path.join(cfg.recordingpath, "flac" if format == "wav" else format, recording)):
             raise web.NotFound()
-        f = open(os.path.join(cfg.recordingpath, format, recording, file), "rb")
+        if format == "wav":
+            f = os.popen("flac -sdc " + os.path.join(cfg.recordingpath, "flac", recording, file[:-3]+"flac"))
+        else:
+            f = open(os.path.join(cfg.recordingpath, format, recording, file), "rb")
         data = f.read()
         f.close()
         if format == "mp3":
