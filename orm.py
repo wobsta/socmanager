@@ -44,7 +44,9 @@ class Member(object):
             setattr(self, key, value)
 
     def __unicode__(self):
-        s = "\n".join(u"%s=%s" % (key, getattr(self, str(key).split(".", 1)[1])) for key in tables.member_table.columns)
+        s = "\n".join(u"%s=%s" % (key, getattr(self, str(key).split(".", 1)[1]))
+                      for key in tables.member_table.columns
+                      if not key.startswith('subscription_'))
         s += "\ntags=%s" % " ".join(tag.name for tag in self.tags)
         return s
 
@@ -187,6 +189,20 @@ class PhotoLabel(object):
         self.text = text
 
 
+class Subscription(object):
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class Recording(object):
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
 class Ticket(object):
 
     def __init__(self, **kwargs):
@@ -266,7 +282,11 @@ mapper(Member, tables.member_table,
                                         backref="member",
                                         primaryjoin=and_(tables.member_table.c.id==tables.message_table.c.member_id,
                                                          tables.circular_table.c.id==tables.message_table.c.circular_id),
-                                        order_by=[tables.circular_table.c.instance_order])})
+                                        order_by=[tables.circular_table.c.instance_order]),
+                   "subscriptions": relation(Subscription,
+                                             backref="member"),
+                   "recordings": relation(Recording,
+                                          backref="member")})
 
 mapper(Change, tables.change_table)
 
@@ -274,6 +294,8 @@ mapper(Tag, tables.tag_table,
        properties={"photos": relation(Photo,
                                       backref="tag",
                                       order_by=[tables.photo_table.c.name]),
+                   "recordings": relation(Recording,
+                                          backref="tag"),
                    "tickets": relation(Ticket,
                                        backref="tag"),
                    "solds": relation(Sold,
@@ -309,6 +331,10 @@ mapper(Photo, tables.photo_table,
                                       backref="photo")})
 
 mapper(PhotoLabel, tables.photo_label_table)
+
+mapper(Subscription, tables.subscription_table)
+
+mapper(Recording, tables.recording_table)
 
 mapper(Ticket, tables.ticket_table)
 

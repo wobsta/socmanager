@@ -1,0 +1,40 @@
+$def with (tags, cfg, member)
+<h1>Aufnahmen</h1>
+$if member.subscription_active:
+  <p>Dein Voll-Abo ist aktiv, Du hast Zugriff auf das komplette Archiv. Deine Zugangsdaten per webdav lauten: Benutzername "m$member.id" und Passwort "$member.subscription_pw" (ohne die Anführungszeichen). Weitere Informationen findest Du auf der <a href="/wiki/recordings">Wiki-Seite zu den Aufnahmen</a>.</p>
+  <dl>
+  $for tag in tags:
+    $if tag.recording:
+      <dt>$tag.description.split(" (")[0]</dt>
+      <dd>
+        <ul>
+          <li><a href="recording/$tag.recording/index-mp3.html">mp3-Dateiliste</a></li>
+          <li><a href="recording/$tag.recording/index-flac.html">flac-Dateiliste</a></li>
+          <li><a href="recording/$(tag.recording)_mp3.zip">$(tag.recording)_mp3.zip</a></li>
+          <li><a href="recording/$(tag.recording)_flac.zip">$(tag.recording)_flac.zip</a></li>
+          <li><a href="recording/$(tag.recording)_wav.zip">$(tag.recording)_wav.zip</a></li>
+        </ul>
+      </dd>
+  </dl>
+$else:
+  <p>Es können Einzelaufnahmen gekauft oder die gesamte Bibliothek als Abo bestellt werden. Bei letzterem sind neue Aufnahmen dann immer automatisch mit dabei, zudem ist die Komplettbibliothek per webdav verfügbar. Details siehe <a href="/wiki/recordings">Beschreibung im Wiki</a>.</p>
+  <h2>Bestellung</h2>
+  <p><a href="recording_form.html">Formular zum Kauf einer Einzelaufnahme ($cfg.recording €)</a></p>
+  <p><a href="subscription_form.html">Formular zur Abo-Bestellung (erstmalig $cfg.subscription_initial €, in den Folgejahren $cfg.subscription_annual €)</a></p>
+  $if len(member.recordings):
+    <h2>Deine Aufnahmen</h2>
+    <dl>
+    $for tag in tags:
+      $if tag.recording and tag in [recording.tag for recording in member.recordings]:
+        <dt>$tag.description.split(" (")[0]</dt>
+        <dd>
+          <ul>
+            <li><a href="recording/$tag.recording/index-mp3.html">mp3-Dateiliste</a></li>
+            <li><a href="recording/$tag.recording/index-flac.html">flac-Dateiliste</a></li>
+            <li><a href="recording/$(tag.recording)_mp3.zip">$(tag.recording)_mp3.zip</a></li>
+            <li><a href="recording/$(tag.recording)_flac.zip">$(tag.recording)_flac.zip</a></li>
+            <li><a href="recording/$(tag.recording)_wav.zip">$(tag.recording)_wav.zip</a></li>
+          </ul>
+        </dd>
+    </dl>
+<p>zurück zu <a href="index.html">Deiner SOC Mitgliederseite</a></p>

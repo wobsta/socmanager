@@ -16,10 +16,12 @@ secret = u"..."
 cookie = "soclogin"
 pdflatex = "/usr/bin/pdflatex"
 xsltproc = "/usr/bin/xsltproc"
+htpasswd = "/usr/bin/htpasswd"
 tmppath = "/tmp/socmanager"
 photopath = os.path.join(parentpath, "photos")
 thumbpath = os.path.join(parentpath, "var", "spool", "socmanager", "thumb")
 midpath = os.path.join(parentpath, "var", "spool", "socmanager", "mid")
+recordingpath = os.path.join(parentpath, "cds")
 formats = [Storage(processor="tex", name="full", description=u"Komplettliste mit allen Informationen (pdf)", cls="full.cls", merge=None, hide_private=False),
            Storage(processor="tex", name="project", description=u"Projektliste zum Verteilen (pdf)", cls="project.cls", merge=None, hide_private=True),
            Storage(processor="tex", name="chorverband", description=u"Mitgliederliste für Chorverband (pdf)", cls="chorverband.cls", merge=None, hide_private=False),
@@ -48,7 +50,14 @@ mapformats = [Storage(processor="tex", name="map", description=u"Sitzplan (pdf)"
               Storage(processor="xml", name="tickets1", description=u"Karten-Seriendatei fortlaufend (tex)", xslt="series.xslt", mime="text/plain", extension="tex", order=1),
               Storage(processor="xml", name="tickets6", description=u"Karten-Seriendatei 6 hintereinander (tex)", xslt="series.xslt", mime="text/plain", extension="tex", order=6)]
 
+subscription_initial = 50
+subscription_annual = 20
+recording = 10
+subscription_passwdfile = "/home/wobsta/soc/webdav-passwd"
+
 try:
     from secrets import *
+    dev = False
 except ImportError:
     print "No secrets found (ok for dev mode; not appropriate for production)."
+    dev = True

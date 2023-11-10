@@ -8,7 +8,7 @@ $if members:
       <input type="hidden" name="selection" value="$(",".join(str(member.id) for member in members))">
     </p>
 <table id="list" cellspacing="0" cellpadding="0" border="0">
-  <tr><th>Name</th><th>Mitglieder</th><th>sichtbar</th><th>Fotoalbum</th><th>Karten</th>
+  <tr><th>Name</th><th>Mitglieder</th><th>sichtbar</th><th>Fotoalbum</th><th>Aufname</th><th>Karten</th>
     $if members:
         <th>Aktion für Tag</th><th>Aktion für ausgewählte Mitglieder</th>
     $else:
@@ -29,6 +29,7 @@ $if members:
           $else:
                nein
         </td>
+        <td style="text-align:center;">$("ja" if tag.recording else "nein")</td>
         <td style="text-align:center;">
           $if tag.ticketmap_latexname:
                <a href="tickets/$tag.id/index.html">$(tickets or 0) Karten</a>

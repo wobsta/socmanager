@@ -1,17 +1,25 @@
-$def with (form, photopaths)
+$def with (form, photopaths, recordings)
 $code:
-    options = "".join("<option>%s</option>" % photopath for photopath in photopaths)
+    photooptions = "".join("<option>%s</option>" % photopath for photopath in photopaths)
+    recordingoptions = "".join("<option>%s</option>" % recordingpath for recordingpath in recordings)
 $var script:
     <script src="../../../static/jquery.min.js" type="text/javascript"></script>
     <script src="../../../static/jquery.timer.js" type="text/javascript"></script>
     <script src="../../../static/jquery.scrollTo-min.js" type="text/javascript"></script>
     <script type="text/javascript">
       $$(function () {
-        $$("input[id=photopath]").after(' z.B. <select id="suggestion"><option>(Vorschläge zur Auswahl; nach Selektion editierbar)</option>$:options</select>');
-        $$("select[id=suggestion]").change(function() {
-          if ($$("select[id=suggestion]").val()[0] != "(")
+        $$("input[id=photopath]").after(' z.B. <select id="photosuggestion"><option>(Vorschläge zur Auswahl; nach Selektion editierbar)</option>$:photooptions</select>');
+        $$("input[id=recording]").after(' z.B. <select id="recordingsuggestion"><option>(Vorschläge zur Auswahl; nach Selektion editierbar)</option>$:recordingoptions</select>');
+        $$("select[id=photosuggestion]").change(function() {
+          if ($$("select[id=photosuggestion]").val()[0] != "(")
+            {
+              $$("input[id=photopath]").val($$("select[id=photosuggestion]").val());
+            }
+          });
+        $$("select[id=recordingsuggestion]").change(function() {
+          if ($$("select[id=recordingsuggestion]").val()[0] != "(")
           {
-            $$("input[id=photopath]").val($$("select[id=suggestion]").val());
+            $$("input[id=recording]").val($$("select[id=recordingsuggestion]").val());
           }
         });
         $$("form").submit(function() {

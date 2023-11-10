@@ -1,0 +1,5 @@
+$def with (tag, files)
+<h1><a href="../../recordings.html">Aufnahmen</a>: $tag.description.split(" (")[0]</h1>
+$for file in files:
+  <p><a href="$file">$file</a></p>
+<p>zurück zu <a href="../../index.html">Deiner SOC Mitgliederseite</a></p>

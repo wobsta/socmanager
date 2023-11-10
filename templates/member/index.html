@@ -52,9 +52,9 @@ $def show(*args):
   <dt>Mitglieder-Seiten:</dt>
   <dd>
     $if "inaktiv" in [tag.name for tag in member.tags]:
-        <p>Als inaktives Mitglied hast Du <b>keinen</b> Zugang zu den Mitglieder-Seiten.</p>
+        <p>Als inaktives Mitglied hast Du <b>keinen</b> Zugang zu den Mitglieder-Seiten, aber weiterhin zu Deinen <a href="recordings.html">Aufnahmen</a>.</p>
     $else:
-        <p>Als aktives Mitglied hast Du Zugang zum <a href="wiki/">Mitglieder-Wiki</a> und zu den <a href="photos.html">Fotoalben</a>.</p>
+        <p>Als aktives Mitglied hast Du Zugang zum <a href="wiki/">Mitglieder-Wiki</a>, zu den <a href="recordings.html">Aufnahmen</a> und zu den <a href="photos.html">Fotoalben</a>.</p>
   </dd>
   $if "Verein" in [tag.name for tag in member.tags]:
       <dt>Vereins-Seiten:</dt>

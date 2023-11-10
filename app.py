@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os, sys
+import os, sys, tempfile
 path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, path)
 
@@ -45,7 +45,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import desc
 
-import orm, tables, iban
+import orm, tables, iban, passwd
 
 class socRadio(web.form.Radio):
 
@@ -83,6 +83,12 @@ urls = ("/login.html$", "login",
         "/member/message/([^/]+)/show.html$", "member_message",
         "/member/message/([^/]+)/(.*)$", "member_message_attachment",
         "/member/survey.html$", "member_survey",
+        "/member/recordings.html$", "member_recordings",
+        "/member/recording/([^/]+)/index-(mp3|flac).html$", "member_recording",
+        "/member/recording/([^/]+)/(.*)$", "member_recording_get",
+        "/member/recording/([^/]+)_(mp3|flac|wav).zip$", "member_recording_zip",
+        "/member/recording_form.html$", "member_recording_form",
+        "/member/subscription_form.html$", "member_subscription_form",
         "/member/photos.html$", "member_photos",
         "/member/photos/([^/]+)/(?:index.html)?$", "member_photos_album",
         "/member/photos/([^/]+)/labels.html$", "member_photos_labels",
@@ -384,9 +390,9 @@ class tickets(ticket_form):
             clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             if instance.shipment_possible:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.replace(' ', ''), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
             else:
-                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.strip(), tag=instance.onsale)
+                sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.replace(' ', ''), tag=instance.onsale)
             if web.input().has_key("newsletter"):
                 web.ctx.orm.query(orm.Newsletter).filter_by(email=ticket_form.d.email).delete()
                 orm.Newsletter(ticket_form.d.gender, ticket_form.d.name, ticket_form.d.email, instance)
@@ -576,17 +582,10 @@ def checkaccount(i):
     if i.payment not in ['banktransfer', 'debit']:
         return False
     if i.payment == 'debit':
-        if not iban.ibanvalid(i.account_iban):
+        if not iban.ibanvalid(i.account_iban.replace(' ', '')):
             return False
-        if len(i.account_bic.strip()) not in [8, 11] or i.account_bic.strip()[4:6].upper() != i.account_iban.strip()[:2].upper():
+        if len(i.account_bic.replace(' ', '')) not in [8, 11] or i.account_bic.replace(' ', '')[4:6].upper() != i.account_iban.replace(' ', '')[:2].upper():
             return False
-    return True
-
-def alwayscheckaccount(i):
-    if not iban.ibanvalid(i.account_iban):
-        return False
-    if len(i.account_bic.strip()) not in [8, 11] or i.account_bic.strip()[4:6].upper() != i.account_iban.strip()[:2].upper():
-        return False
     return True
 
 def checkshipment(i):
@@ -778,6 +777,149 @@ class member_survey(object):
         if web.input()["survey"] == "yes": self.member.tags.append(yes)
         if web.input()["survey"] == "no": self.member.tags.append(no)
         return render.page("/member/survey.html", render.member.survey(web.input()["survey"] == "yes", web.input()["survey"] == "no"), self.member, ticket_sale_open())
+
+
+class member_recordings(object):
+
+    @with_member_auth()
+    def GET(self):
+        tags = web.ctx.orm.query(orm.Tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).order_by(desc(orm.Tag.instance_order)).all()
+        return render.page("/member/recordings.html", render.member.recordings(tags, cfg, self.member), self.member, ticket_sale_open())
+
+
+def checkpayment(i):
+    if not iban.ibanvalid(i.iban.replace(' ', '')):
+        return False
+    if len(i.bic.replace(' ', '')) not in [8, 11] or i.bic.replace(' ', '')[4:6].upper() != i.iban.replace(' ', '')[:2].upper():
+        return False
+    return True
+
+
+SubscriptionForm = web.form.Form(web.form.Textbox("holder", notnull, description="Kontoinhaber"),
+                                 web.form.Textbox("iban", description="IBAN"),
+                                 web.form.Textbox("bic", description="BIC"),
+                                 web.form.Button("submit", type="submit", html=u"Abo anlegen"),
+                                 validators = [web.form.Validator("Ungültige Zahlungsangaben.", checkpayment)])
+
+
+class member_subscription_form(object):
+
+    @with_member_auth()
+    def GET(self):
+        form = SubscriptionForm()
+        return render.page("/member/subscription_form.html", render.member.subscription_form(form, cfg), self.member, ticket_sale_open())
+
+    @with_member_auth()
+    def POST(self):
+        form = SubscriptionForm()
+        if form.validates():
+            self.member.subscription_holder = form.d.holder
+            self.member.subscription_iban = form.d.iban
+            self.member.subscription_bic = form.d.bic
+            self.member.subscription_active = True
+            self.member.subscription_pw = passwd.generate_alphanumeric()
+            os.system("%s -b %s s%d %s" % (cfg.htpasswd, cfg.subscription_passwdfile, self.member.id, self.member.subscription_pw))
+            raise web.seeother("recordings.html")
+        else:
+            return render.page("/member/subscription_form.html", render.member.subscription_form(form, cfg), self.member, ticket_sale_open())
+
+
+class member_recording_form(object):
+
+    def form(self):
+        tags = web.ctx.orm.query(orm.Tag).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).order_by(desc(orm.Tag.instance_order)).all()
+        member_recordings_tags = [recording.tag for recording in self.member.recordings]
+        return web.form.Form(web.form.Dropdown("recording", [(tag.recording, tag.description.split(" (")[0])
+                                                             for tag in tags
+                                                             if tag.recording and tag not in member_recordings_tags], description="Aufnahme"),
+                             web.form.Textbox("holder", notnull, description="Kontoinhaber"),
+                             web.form.Textbox("iban", description="IBAN"),
+                             web.form.Textbox("bic", description="BIC"),
+                             web.form.Button("submit", type="submit", html=u"einzelne Aufnahme kaufen"),
+                             validators = [web.form.Validator("Ungültige Zahlungsangaben.", checkpayment)])
+
+
+    @with_member_auth()
+    def GET(self):
+        form = self.form()
+        return render.page("/member/recording_form.html", render.member.recording_form(form, cfg), self.member, ticket_sale_open())
+
+    @with_member_auth()
+    def POST(self):
+        form = self.form()
+        if form.validates():
+            tag = web.ctx.orm.query(orm.Tag).filter_by(recording=form.d.recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).order_by(desc(orm.Tag.instance_order)).one()
+            sold = orm.Recording(account_holder=form.d.holder,
+                                 account_iban=form.d.iban,
+                                 account_bic=form.d.bic,
+                                 amount=cfg.recording,
+                                 member=self.member,
+                                 tag=tag)
+            web.ctx.orm.commit()
+            raise web.seeother("recordings.html")
+        else:
+            return render.page("/member/recording_form.html", render.member.recording_form(form, cfg), self.member, ticket_sale_open())
+
+
+class member_recording(object):
+
+    @with_member_auth()
+    def GET(self, recording, format):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+            raise web.Forbidden()
+        files = list(sorted(os.listdir(os.path.join(cfg.recordingpath, format, recording))))
+        return render.page("/member/recording/X/index.html", render.member.recording(tag, files), self.member, ticket_sale_open())
+
+
+class member_recording_get(object):
+
+    @with_member_auth()
+    def GET(self, recording, file):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+            raise web.Forbidden()
+        format = file.split('.')[-1]
+        if format not in ['mp3', 'flac']:
+            raise web.NotFound()
+        if file not in os.listdir(os.path.join(cfg.recordingpath, format, recording)):
+            raise web.NotFound()
+        f = open(os.path.join(cfg.recordingpath, format, recording, file), "rb")
+        data = f.read()
+        f.close()
+        if format == "mp3":
+            web.header("Content-Type", "audio/mpeg")
+        else:
+            web.header("Content-Type", "audio/x-flac")
+        web.header("Content-Disposition", "attachment; filename=\"%s\"" % file)
+        return data
+
+
+class member_recording_zip(object):
+
+    @with_member_auth()
+    def GET(self, recording, format):
+        tag = web.ctx.orm.query(orm.Tag).filter_by(recording=recording).join((orm.Instance, orm.Tag.instance)).filter_by(name=cfg.instance).one()
+        if not self.member.subscription_active and tag not in [recording.tag for recording in self.member.recordings]:
+            raise web.Forbidden()
+        dir = tempfile.mkdtemp()
+        try:
+            if format == "wav":
+                os.mkdir(os.path.join(dir, recording))
+                for f in os.listdir(os.path.join(cfg.recordingpath, "flac", recording)):
+                    os.system("flac -sdo %s/%s/%s.wav %s" % (dir, recording, f[:-5], os.path.join(cfg.recordingpath, "flac", recording, f)))
+                os.system("touch -r %s %s/%s" % (os.path.join(cfg.recordingpath, "flac", recording), dir, recording))
+                os.system("cd %s;zip -q0r %s_%s.zip %s" % (dir, recording, "wav", recording))
+            else:
+                os.system("cd %s;zip -q0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, recording))
+            f = open("%s/%s_%s.zip" % (dir, recording, format), "rb")
+            data = f.read()
+            f.close()
+        finally:
+            os.system("rm -r %s" % dir)
+        web.header("Content-Type", "application/zip")
+        web.header("Content-Disposition", "attachment; filename=\"%s_%s.zip\"" % (recording, format))
+        return data
 
 
 class member_photos(object):
@@ -1414,6 +1556,7 @@ class member_admin_tag_form(object):
                              web.form.Textbox("ticket_title", description="Karten-Titel", size=50),
                              web.form.Textbox("ticket_description", description="Karten-Beschreibung", size=50),
                              web.form.Textbox("ticketmap_latexname", description="Karten-Plan (Name der LaTeX class option)", size=50),
+                             web.form.Textbox("recording", description="Aufnahme", size=50),
                              web.form.Button("submit", type="submit", html=u"Speichern"))
 
 
@@ -1425,7 +1568,11 @@ class member_admin_tag_new(member_admin_tag_form):
             photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in sorted(os.listdir(cfg.photopath))]
         except OSError:
             photopaths = []
-        return render.page("/member/admin/tag/new.html", render.member.admin.tag.new(self.form(), photopaths), self.member, ticket_sale_open())
+        try:
+            recordings = list(sorted(os.listdir(os.path.join(cfg.recordingpath, "mp3"))))
+        except OSError:
+            recordings = []
+        return render.page("/member/admin/tag/new.html", render.member.admin.tag.new(self.form(), photopaths, recordings), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
     def POST(self):
@@ -1436,7 +1583,7 @@ class member_admin_tag_new(member_admin_tag_form):
             if form.validates():
                 web.header("Content-Type", "text/plain; charset=utf-8")
                 web.header("Transfer-Encoding", "chunked")
-                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, form.d.ticket_title, form.d.ticket_description, form.d.ticketmap_latexname)
+                tag = orm.Tag(form.d.name, form.d.description, web.input().has_key("visible"), form.d.photopath, form.d.photographer, form.d.ticket_title, form.d.ticket_description, form.d.ticketmap_latexname, form.d.recording)
                 yield "scanning photos…\n"
                 if tag.photopath:
                     for photo in sorted(os.listdir(tag.photopath)):
@@ -1474,12 +1621,17 @@ class member_admin_tag_edit(member_admin_tag_form):
         form.ticket_title.value = tag.ticket_title
         form.ticket_description.value = tag.ticket_description
         form.ticketmap_latexname.value = tag.ticketmap_latexname
+        form.recording.value = tag.recording
         form.pos.value = str(self.instance.tags.index(tag))
         try:
             photopaths = [os.path.normpath(os.path.join(cfg.photopath, dir)) for dir in sorted(os.listdir(cfg.photopath))]
         except OSError:
             photopaths = []
-        return render.page("/member/admin/tag/X/edit.html", render.member.admin.tag.edit(form, photopaths), self.member, ticket_sale_open())
+        try:
+            recordings = list(sorted(os.listdir(os.path.join(cfg.recordingpath, "mp3"))))
+        except OSError:
+            recordings = []
+        return render.page("/member/admin/tag/X/edit.html", render.member.admin.tag.edit(form, photopaths, recordings), self.member, ticket_sale_open())
 
     @with_member_auth(admin_only=True)
     def POST(self, id):
@@ -1499,27 +1651,29 @@ class member_admin_tag_edit(member_admin_tag_form):
                 tag.ticket_title = form.d.ticket_title
                 tag.ticket_description = form.d.ticket_description
                 tag.ticketmap_latexname = form.d.ticketmap_latexname
+                tag.recording = form.d.recording
                 instance.tags.remove(tag)
                 instance.insert_tag(int(form.d.pos), tag)
-                photos = dict((photo.name, photo)
-                              for photo in session.query(orm.Photo).join(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance_id==orm.Instance.id)).filter_by(name=cfg.instance))
-                yield "scanning photos…\n"
-                if tag.photopath:
-                    for photo in sorted(os.listdir(tag.photopath)):
-                        yield "%s" % photo
-                        if photo in photos:
-                            yield " (cached)"
-                            photo = photos.pop(photo)
-                            photo.allow_labels = photo.name in form.d.labeledphotos.replace(",", " ").split()
-                            photo.refresh()
-                        else:
-                            photo = orm.Photo(photo, tag, photo in form.d.labeledphotos.replace(",", " ").split())
-                            session.add(photo)
-                        yield ": %dx%d (%.1fkB), mid: %dx%d (%.1fkB), thumb: %dx%d (%.1fkB)\n" % (photo.width, photo.height, photo.size/1024.0, photo.midwidth, photo.midheight, photo.midsize/1024.0, photo.thumbwidth, photo.thumbheight, photo.thumbsize/1024.0)
-                for photo in photos:
-                    yield "remove spurious photo %s\n" % photo
-                    session.delete(photos[photo]) # fails, if labels are present -> feature.
-                yield "scanning complete.\n"
+                if os.path.exists(tag.photopath):
+                    photos = dict((photo.name, photo)
+                                  for photo in session.query(orm.Photo).join(orm.Tag).filter_by(id=int(id)).join((orm.Instance, orm.Tag.instance_id==orm.Instance.id)).filter_by(name=cfg.instance))
+                    yield "scanning photos…\n"
+                    if tag.photopath:
+                        for photo in sorted(os.listdir(tag.photopath)):
+                            yield "%s" % photo
+                            if photo in photos:
+                                yield " (cached)"
+                                photo = photos.pop(photo)
+                                photo.allow_labels = photo.name in form.d.labeledphotos.replace(",", " ").split()
+                                photo.refresh()
+                            else:
+                                photo = orm.Photo(photo, tag, photo in form.d.labeledphotos.replace(",", " ").split())
+                                session.add(photo)
+                            yield ": %dx%d (%.1fkB), mid: %dx%d (%.1fkB), thumb: %dx%d (%.1fkB)\n" % (photo.width, photo.height, photo.size/1024.0, photo.midwidth, photo.midheight, photo.midsize/1024.0, photo.thumbwidth, photo.thumbheight, photo.thumbsize/1024.0)
+                    for photo in photos:
+                        yield "remove spurious photo %s\n" % photo
+                        session.delete(photos[photo]) # fails, if labels are present -> feature.
+                    yield "scanning complete.\n"
             else:
                 raise web.seeother("../../tags.html")
         except web.HTTPError:
@@ -2818,7 +2972,7 @@ class member_admin_link_email(member_admin_work_on_selection):
 # }}} admin links
 # }}} admin
 
-if path.endswith("/dev"):
+if cfg.dev:
     if __name__ == "__main__":
         print "socmanager  Copyright (C) 2010-2011  André Wobst"
         app.run()

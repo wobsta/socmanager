@@ -40,6 +40,11 @@ member_table = Table("member", metadata,
                      Column("birthday", Date),
                      Column("birthday_private", Boolean, nullable=False),
                      Column("note", Unicode),
+                     Column("subscription_active", Boolean),
+                     Column("subscription_holder", Unicode),
+                     Column("subscription_iban", Unicode),
+                     Column("subscription_bic", Unicode),
+                     Column("subscription_pw", Unicode),
                      Column("instance_order", String, nullable=False),
                      Column("instance_id", Integer, ForeignKey("instance.id"), nullable=False),
                      CheckConstraint("gender in ('female', 'male')"))
@@ -65,6 +70,7 @@ tag_table = Table("tag", metadata,
                   Column("ticketmap_width", Integer),
                   Column("ticketmap_height", Integer),
                   Column("ticketmap_latexname", Unicode),
+                  Column("recording", Unicode),
                   Column("instance_order", String, nullable=False),
                   Column("instance_id", Integer, ForeignKey("instance.id"), nullable=False),
                   UniqueConstraint("instance_id", "instance_order"))
@@ -145,6 +151,25 @@ photo_label_table = Table("photo_label", metadata,
                     Column("height", Integer, nullable=False),
                     Column("text", Unicode, nullable=False))
 
+subscription_table = Table("subscription", metadata,
+                           Column("id", Integer, primary_key=True),
+                           Column("member_id", Integer, ForeignKey("member.id"), nullable=False),
+                           Column("amount", Integer, nullable=False),
+                           Column("created", DateTime, default=datetime.datetime.now, nullable=False),
+                           Column("payed", DateTime))
+
+recording_table = Table("recording", metadata,
+                        Column("id", Integer, primary_key=True),
+                        Column("member_id", Integer, ForeignKey("member.id"), nullable=False),
+                        Column("tag_id", Integer, ForeignKey("tag.id"), nullable=False),
+                        Column("account_holder", Unicode, nullable=False),
+                        Column("account_iban", Unicode, nullable=False),
+                        Column("account_bic", Unicode, nullable=False),
+                        Column("amount", Integer, nullable=False),
+                        Column("created", DateTime, default=datetime.datetime.now, nullable=False),
+                        Column("payed", DateTime),
+                        UniqueConstraint("member_id", "tag_id"))
+
 ticket_table = Table("ticket", metadata,
                      Column("id", Integer, primary_key=True),
                      Column("block", Unicode, nullable=False),
@@ -221,7 +246,10 @@ if __name__ == "__main__":
     attachment_table.create()
     photo_table.create()
     photo_label_table.create()
-    ticket_table.create()
+    subscription_table.create()
+    subscription_payment_table.create()
+    recording_payment_table.create()
     sold_table.create()
+    ticket_table.create()
     coupon_table.create()
     newsletter_table.create()
