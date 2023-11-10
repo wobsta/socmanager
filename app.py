@@ -818,7 +818,7 @@ class member_subscription_form(object):
             self.member.subscription_bic = form.d.bic
             self.member.subscription_active = True
             self.member.subscription_pw = passwd.generate_alphanumeric()
-            os.system("%s -b %s s%d %s" % (cfg.htpasswd, cfg.subscription_passwdfile, self.member.id, self.member.subscription_pw))
+            os.system("%s -b %s m%d %s" % (cfg.htpasswd, cfg.subscription_passwdfile, self.member.id, self.member.subscription_pw))
             raise web.seeother("recordings.html")
         else:
             return render.page("/member/subscription_form.html", render.member.subscription_form(form, cfg), self.member, ticket_sale_open())
