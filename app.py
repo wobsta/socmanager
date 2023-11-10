@@ -891,14 +891,16 @@ class member_recording_get(object):
             f = os.popen("flac -sdc " + os.path.join(cfg.recordingpath, "flac", recording, file[:-3]+"flac"))
         else:
             f = open(os.path.join(cfg.recordingpath, format, recording, file), "rb")
-        data = f.read()
-        f.close()
         if format == "mp3":
             web.header("Content-Type", "audio/mpeg")
         else:
             web.header("Content-Type", "audio/x-flac")
         web.header("Content-Disposition", "attachment; filename=\"%s\"" % file)
-        return data
+        while 1:
+            buf = f.read(2**20)
+            if not buf:
+                break
+            yield buf
 
 
 class member_recording_zip(object):
@@ -919,13 +921,15 @@ class member_recording_zip(object):
             else:
                 os.system("cd %s;zip -q0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, recording))
             f = open("%s/%s_%s.zip" % (dir, recording, format), "rb")
-            data = f.read()
-            f.close()
         finally:
             os.system("rm -r %s" % dir)
         web.header("Content-Type", "application/zip")
         web.header("Content-Disposition", "attachment; filename=\"%s_%s.zip\"" % (recording, format))
-        return data
+        while 1:
+            buf = f.read(2**20)
+            if not buf:
+                break
+            yield buf
 
 
 class member_photos(object):
