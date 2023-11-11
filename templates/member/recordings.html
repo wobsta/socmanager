@@ -1,7 +1,7 @@
 $def with (tags, cfg, member)
 <h1>Aufnahmen</h1>
 $if member.subscription_active:
-  <p>Dein Voll-Abo ist aktiv, Du hast Zugriff auf das komplette Archiv. Deine Zugangsdaten per webdav lauten: Benutzername "m$member.id" und Passwort "$member.subscription_pw" (ohne die Anführungszeichen). Weitere Informationen findest Du auf der <a href="/wiki/recordings">Wiki-Seite zu den Aufnahmen</a>.</p>
+  <p>Dein Voll-Abo ist aktiv, Du hast Zugriff auf das komplette Archiv. Deine Zugangsdaten per webdav lauten: Benutzername "m$member.id" und Passwort "$member.subscription_pw" (ohne die Anführungszeichen). Weitere Informationen findest Du auf der <a href="/member/wiki/recordings">Wiki-Seite zu den Aufnahmen</a>.</p>
   <dl>
   $for tag in tags:
     $if tag.recording:
@@ -18,7 +18,7 @@ $if member.subscription_active:
       </dd>
   </dl>
 $else:
-  <p>Es können Einzelaufnahmen gekauft oder die gesamte Bibliothek als Abo bestellt werden. Bei letzterem sind neue Aufnahmen dann immer automatisch mit dabei, zudem ist die Komplettbibliothek per webdav verfügbar. Details siehe <a href="/wiki/recordings">Beschreibung im Wiki</a>.</p>
+  <p>Es können Einzelaufnahmen gekauft oder die gesamte Bibliothek als Abo bestellt werden. Bei letzterem sind neue Aufnahmen dann immer automatisch mit dabei, zudem ist die Komplettbibliothek per webdav verfügbar. Weitere Informationen findest Du auf der <a href="/member/wiki/recordings">Wiki-Seite zu den Aufnahmen</a>.</p>
   <h2>Bestellung</h2>
   <p><a href="recording_form.html">Formular zum Kauf einer Einzelaufnahme ($cfg.recording €)</a></p>
   <p><a href="subscription_form.html">Formular zur Abo-Bestellung (erstmalig $cfg.subscription_initial €, in den Folgejahren $cfg.subscription_annual €)</a></p>
