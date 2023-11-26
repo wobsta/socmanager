@@ -46,7 +46,7 @@ class Member(object):
     def __unicode__(self):
         s = "\n".join(u"%s=%s" % (key, getattr(self, str(key).split(".", 1)[1]))
                       for key in tables.member_table.columns
-                      if not key.startswith('subscription_'))
+                      if not str(key).startswith('subscription_'))
         s += "\ntags=%s" % " ".join(tag.name for tag in self.tags)
         return s
 
