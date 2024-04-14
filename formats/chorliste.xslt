@@ -16,10 +16,10 @@
       <xsl:param name="l2"/>
       <xsl:param name="l3"/>
       <xsl:param name="l4"/>
-      <xsl:value-of select="normalize-space($l1[position()=1]/lastname)"/><xsl:text> </xsl:text><xsl:value-of select="normalize-space($l1[position()=1]/firstname)"/><xsl:text>	</xsl:text>
-      <xsl:value-of select="normalize-space($l2[position()=1]/lastname)"/><xsl:text> </xsl:text><xsl:value-of select="normalize-space($l2[position()=1]/firstname)"/><xsl:text>	</xsl:text>
-      <xsl:value-of select="normalize-space($l3[position()=1]/lastname)"/><xsl:text> </xsl:text><xsl:value-of select="normalize-space($l3[position()=1]/firstname)"/><xsl:text>	</xsl:text>
-      <xsl:value-of select="normalize-space($l4[position()=1]/lastname)"/><xsl:text> </xsl:text><xsl:value-of select="normalize-space($l4[position()=1]/firstname)"/><xsl:text>
+      <xsl:value-of select="normalize-space($l1[position()=1]/lastname)"/><xsl:text>, </xsl:text><xsl:value-of select="normalize-space($l1[position()=1]/firstname)"/><xsl:text>	</xsl:text>
+      <xsl:value-of select="normalize-space($l2[position()=1]/lastname)"/><xsl:text>, </xsl:text><xsl:value-of select="normalize-space($l2[position()=1]/firstname)"/><xsl:text>	</xsl:text>
+      <xsl:value-of select="normalize-space($l3[position()=1]/lastname)"/><xsl:text>, </xsl:text><xsl:value-of select="normalize-space($l3[position()=1]/firstname)"/><xsl:text>	</xsl:text>
+      <xsl:value-of select="normalize-space($l4[position()=1]/lastname)"/><xsl:text>, </xsl:text><xsl:value-of select="normalize-space($l4[position()=1]/firstname)"/><xsl:text>
 </xsl:text>
       <xsl:if test="count($l1)>1 or count($l2)>1 or count($l3)>1 or count($l4)>1">
          <xsl:call-template name="iterate_parallel">
