@@ -818,6 +818,8 @@ class member_subscription_form(object):
             self.member.subscription_bic = form.d.bic
             self.member.subscription_active = True
             self.member.subscription_pw = passwd.generate_alphanumeric()
+            orm.Subscription(member=self.member,
+                             amount=cfg.subscription_initial)
             os.system("%s -b %s m%d %s" % (cfg.htpasswd, cfg.subscription_passwdfile, self.member.id, self.member.subscription_pw))
             raise web.seeother("recordings.html")
         else:
