@@ -1817,7 +1817,7 @@ class member_admin_tickets(object):
             while 1:
                 if pos == mapformat.order:
                     break
-                empty = orm.Ticket()
+                empty = orm.Ticket(block="",seat="",row="",regular="", cathegory="")
                 empty.sheet = sheet
                 tickets.append(empty)
                 sheet += 1
