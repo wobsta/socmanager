@@ -387,7 +387,7 @@ class tickets(ticket_form):
             zoom = web.input().get("zoom", "1")
             x = int(float(x)/float(zoom))
             y = int(float(y)/float(zoom))
-            clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).first()
+            clicked = web.ctx.orm.query(orm.Ticket).filter_by(tag_id=instance.onsale.id).filter(orm.Ticket.left<x).filter(orm.Ticket.right>x).filter(orm.Ticket.top<y).filter(orm.Ticket.bottom>y).filter(orm.Ticket.wheelchair!='only').first()
         if ticket_form.validates() and x is None and y is None and ticket_form.d.selected:
             if instance.shipment_possible:
                 sold = orm.Sold(gender=ticket_form.d.gender, name=ticket_form.d.name, email=ticket_form.d.email, online=True, payment=ticket_form.d.payment, account_holder=ticket_form.d.account_holder, account_iban=ticket_form.d.account_iban.replace(' ', ''), account_bic=ticket_form.d.account_bic.replace(' ', ''), tag=instance.onsale, shipment=web.input().has_key("with_shipment"), shipment_firstname=ticket_form.d.shipment_firstname, shipment_surname=ticket_form.d.shipment_surname, shipment_street=ticket_form.d.shipment_street, shipment_zip=ticket_form.d.shipment_zip, shipment_city=ticket_form.d.shipment_city)
