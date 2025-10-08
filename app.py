@@ -594,13 +594,16 @@ def checkshipment(i):
             return False
     return True
 
-def get_birthday(i):
+def get_birthday(i, optional=False):
     if not i.birthday:
-        return True
+        return optional
     day, month, year = map(int, i.birthday.split("."))
-    if year < 1900:
+    if not (1900 < year < datetime.date.today().year - 10):
         return False
     return datetime.date(year, month, day)
+
+def get_birthday_optional(i):
+    return get_birthday(i, optional=True)
 
 
 DataForm = web.form.Form(web.form.Textbox("title", description="akademischer Titel"),
@@ -615,7 +618,7 @@ DataForm = web.form.Form(web.form.Textbox("title", description="akademischer Tit
                          web.form.Textbox("phone", description="Telefon (mehrere möglich; auch gern Fax-Nr.)", size=50),
                          web.form.Textbox("email", description="E-Mail (mehrere mit Komma getrennt möglich)", size=50),
                          web.form.Checkbox("email_private", description="E-Mail auf der Chorliste verstecken", value="yes"),
-                         web.form.Textbox("birthday", description="Geburtstag (freiwillig; Format TT.MM.JJJJ)"),
+                         web.form.Textbox("birthday", description="Geburtstag (Format TT.MM.JJJJ)"),
                          web.form.Checkbox("birthday_private", description="Geburtstag auf der Chorliste verstecken", value="yes"),
                          web.form.Textarea("notes", description="Notizen (nur intern verwendet)", cols=50, rows=5),
                          web.form.Button("submit", type="submit", html=u"Daten ändern"),
@@ -661,11 +664,7 @@ class member_data(object):
             self.member.phone = form.d.phone
             self.member.email = form.d.email
             self.member.email_private = web.input().has_key("email_private")
-            birthday = get_birthday(form.d)
-            if birthday is True:
-                self.member.birthday = None
-            else:
-                self.member.birthday = birthday
+            self.member.birthday = get_birthday(form.d)
             self.member.birthday_private = web.input().has_key("birthday_private")
             self.member.note = form.d.notes
             new = unicode(self.member)
@@ -1165,7 +1164,7 @@ class member_admin_member_form(object):
                              web.form.Textbox("messages", description="Chorbriefe", size=50),
                              web.form.Button("submit", type="submit", html=u"Speichern"),
                              validators = [web.form.Validator("Formatfehler in E-Mail-Adresse(n).", checkemail),
-                                           web.form.Validator("Ungültiges Geburtsdatum.", get_birthday),
+                                           web.form.Validator("Ungültiges Geburtsdatum.", get_birthday_optional),
                                            web.form.Validator("Ungültige Tags.", get_tags),
                                            web.form.Validator("Ungültige Chorbriefe.", get_circulars)])
 
@@ -1190,7 +1189,7 @@ class member_admin_member_new(member_admin_member_form):
             data["note"] = form.d.notes
             del data["pos"]
             del data["notes"]
-            birthday = get_birthday(form.d)
+            birthday = get_birthday(form.d, optional=True)
             if birthday is True:
                 data["birthday"] = None
             else:
@@ -1259,7 +1258,7 @@ class member_admin_member_edit(member_admin_member_form):
             member.phone = form.d.phone
             member.email = form.d.email
             member.email_private = web.input().has_key("email_private")
-            birthday = get_birthday(form.d)
+            birthday = get_birthday(form.d, optional=True)
             if birthday is True:
                 member.birthday = None
             else:
