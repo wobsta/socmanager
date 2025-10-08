@@ -918,9 +918,9 @@ class member_recording_zip(object):
                 for f in os.listdir(os.path.join(cfg.recordingpath, "flac", recording)):
                     os.system("flac -sdo %s/%s/%s.wav %s" % (dir, recording, f[:-5], os.path.join(cfg.recordingpath, "flac", recording, f)))
                 os.system("touch -r %s %s/%s" % (os.path.join(cfg.recordingpath, "flac", recording), dir, recording))
-                os.system("cd %s;zip -q0r %s_%s.zip %s" % (dir, recording, "wav", recording))
+                os.system("cd %s;zip -qX0r %s_%s.zip %s" % (dir, recording, "wav", recording))
             else:
-                os.system("cd %s;zip -q0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, recording))
+                os.system("cd %s;zip -qX0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, recording))
             f = open("%s/%s_%s.zip" % (dir, recording, format), "rb")
         finally:
             os.system("rm -r %s" % dir)
