@@ -915,12 +915,14 @@ class member_recording_zip(object):
         try:
             if format == "wav":
                 os.mkdir(os.path.join(dir, recording))
-                for f in os.listdir(os.path.join(cfg.recordingpath, "flac", recording)):
+                recording_files = []
+                for f in sorted(os.listdir(os.path.join(cfg.recordingpath, "flac", recording))):
                     os.system("flac -sdo %s/%s/%s.wav %s" % (dir, recording, f[:-5], os.path.join(cfg.recordingpath, "flac", recording, f)))
+                    recording_files.append('%s/%s.wav' % (recording, f[:-5]))
                 os.system("touch -r %s %s/%s" % (os.path.join(cfg.recordingpath, "flac", recording), dir, recording))
-                os.system("cd %s;zip -qX0r %s_%s.zip %s" % (dir, recording, "wav", recording))
+                os.system("cd %s;zip -qX0r %s_%s.zip %s" % (dir, recording, "wav", ' '.join(recording_files)))
             else:
-                os.system("cd %s;zip -qX0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, recording))
+                os.system("cd %s;zip -qX0r %s/%s_%s.zip %s" % (os.path.join(cfg.recordingpath, format), dir, recording, format, ' '.join(recording+'/'+f for f in sorted(os.listdir(os.path.join(cfg.recordingpath, format, recording))))))
             f = open("%s/%s_%s.zip" % (dir, recording, format), "rb")
         finally:
             os.system("rm -r %s" % dir)
